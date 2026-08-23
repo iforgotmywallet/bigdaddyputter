@@ -9,11 +9,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "img-src 'self' data: blob: https://picsum.photos https://fastly.picsum.photos",
+      "img-src 'self' data: blob: https://picsum.photos https://fastly.picsum.photos https://res.cloudinary.com",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "font-src 'self' data:",
-      "connect-src 'self'",
+      "connect-src 'self' https://api.cloudinary.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**/image/upload/**" },
     ],
     formats: ["image/avif", "image/webp"],
   },

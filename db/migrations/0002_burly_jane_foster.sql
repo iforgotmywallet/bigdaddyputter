@@ -1,0 +1,1 @@
+ALTER TABLE "putter_images" ADD COLUMN "storage_key" varchar(600);

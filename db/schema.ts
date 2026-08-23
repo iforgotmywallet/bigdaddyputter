@@ -61,6 +61,7 @@ export const putterImages = pgTable("putter_images", {
   id: uuid("id").primaryKey().defaultRandom(),
   putterId: uuid("putter_id").notNull().references(() => putters.id, { onDelete: "cascade" }),
   src: varchar("src", { length: 600 }).notNull(),
+  storageKey: varchar("storage_key", { length: 600 }),
   altZhHant: varchar("alt_zh_hant", { length: 300 }),
   altZhHans: varchar("alt_zh_hans", { length: 300 }),
   altEn: varchar("alt_en", { length: 300 }),

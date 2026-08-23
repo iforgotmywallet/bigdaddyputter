@@ -3,6 +3,24 @@ import { slugSchema } from "@/lib/validation/collection";
 
 export const adminLoginSchema = z.object({ password: z.string().min(8).max(200) });
 
+const adminImageSchema = z.object({
+  src: z.string().trim().min(1).max(600),
+  storageKey: z.string().trim().max(600).nullable().optional(),
+  width: z.number().int().positive().max(20000).nullable().optional(),
+  height: z.number().int().positive().max(20000).nullable().optional(),
+});
+
+const adminImagesSchema = z.string().max(50_000).transform((value, context) => {
+  try {
+    const parsed = z.array(adminImageSchema).max(12).safeParse(JSON.parse(value || "[]"));
+    if (parsed.success) return parsed.data;
+    context.addIssue({ code: "custom", message: "The product image list is invalid." });
+  } catch {
+    context.addIssue({ code: "custom", message: "The product image list is invalid." });
+  }
+  return z.NEVER;
+});
+
 export const putterAdminSchema = z.object({
   id: z.string().uuid().optional(),
   slug: slugSchema,
@@ -18,7 +36,7 @@ export const putterAdminSchema = z.object({
   priceMode: z.enum(["hidden", "amount", "on_request"]),
   priceCents: z.coerce.number().int().nonnegative().optional().or(z.literal("")),
   priceCurrency: z.string().trim().length(3).default("HKD"),
-  imagePaths: z.string().max(5000).optional(),
+  imagesJson: adminImagesSchema,
   isFeatured: z.boolean().default(false),
   isPublished: z.boolean().default(false),
 });

@@ -1,6 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/client";
-import { inquiries, putters, testimonials } from "@/db/schema";
+import { inquiries, putterImages, putters, putterTranslations, testimonials } from "@/db/schema";
 import { samplePutters } from "@/lib/data/sample-putters";
 
 export async function getAdminPutters() {
@@ -12,6 +12,35 @@ export async function getAdminPutter(id: string) {
   if (!hasDatabase()) return samplePutters.find((putter) => putter.id === id) ?? null;
   const [row] = await getDb().select().from(putters).where(eq(putters.id, id)).limit(1);
   return row ?? null;
+}
+
+export async function getAdminPutterEditor(id: string) {
+  if (!hasDatabase()) {
+    const sample = samplePutters.find((putter) => putter.id === id);
+    if (!sample) return null;
+    return {
+      ...sample,
+      titleZhHant: sample.translations["zh-hant"].title,
+      titleZhHans: sample.translations["zh-hans"].title,
+      titleEn: sample.translations.en.title,
+      images: sample.images.map((image) => ({ src: image.src, width: image.width, height: image.height, storageKey: null })),
+    };
+  }
+  const db = getDb();
+  const [record] = await db.select().from(putters).where(eq(putters.id, id)).limit(1);
+  if (!record) return null;
+  const [translations, images] = await Promise.all([
+    db.select().from(putterTranslations).where(eq(putterTranslations.putterId, id)),
+    db.select().from(putterImages).where(eq(putterImages.putterId, id)).orderBy(asc(putterImages.sortOrder)),
+  ]);
+  const title = (locale: string) => translations.find((translation) => translation.locale === locale)?.title ?? `${record.brand} ${record.model}`;
+  return {
+    ...record,
+    titleZhHant: title("zh-hant"),
+    titleZhHans: title("zh-hans"),
+    titleEn: title("en"),
+    images: images.map((image) => ({ src: image.src, storageKey: image.storageKey, width: image.width, height: image.height })),
+  };
 }
 
 export async function getDashboardCounts() {

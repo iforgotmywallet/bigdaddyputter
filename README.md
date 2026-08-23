@@ -32,6 +32,10 @@ Customer accounts require `DATABASE_URL`. Apply the included migrations with `np
 
 The default language is managed in **Admin → Settings**. It controls both the root homepage redirect and the owner console language; visitors can still switch between Traditional Chinese, Simplified Chinese, and English. This global setting is stored in Postgres, so `DATABASE_URL` must be configured.
 
+### Product images
+
+The admin product editor uploads JPEG, PNG, and WebP files directly to Cloudinary with a short-lived, server-signed request. Add `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` to `.env.local` and to the deployment environment. The API secret is server-only. Neon stores the delivered URL, dimensions, ordering, and Cloudinary asset key; the image bytes remain in Cloudinary. Removing an image and saving the record also removes the managed Cloudinary asset.
+
 Without `DATABASE_URL`, the public site uses clearly identified development seed records and Picsum placeholder images. Database mutations remain unavailable, except that inquiry submission reports success locally to support interface review. Configure Neon before accepting real inquiries.
 
 ## Neon setup

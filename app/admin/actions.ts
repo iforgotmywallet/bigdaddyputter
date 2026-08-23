@@ -10,6 +10,8 @@ import { inquiries, putterImages, putters, putterTranslations, siteSettings, tes
 import { clearAdminSession, createAdminSession, requireAdmin } from "@/lib/auth/session";
 import { adminLoginSchema, putterAdminSchema } from "@/lib/validation/admin";
 import { getAdminMessages } from "@/lib/admin-i18n";
+import { deleteCloudinaryImage } from "@/lib/images/cloudinary";
+import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/paths";
 import type { Locale } from "@/lib/types";
 import { LOCALE_PREFERENCE_COOKIE } from "@/lib/locale-preference";
 
@@ -29,7 +31,6 @@ export async function loginAction(_previous: AdminActionState, formData: FormDat
 export async function logoutAction() { await clearAdminSession(); redirect("/admin/login"); }
 
 function toObject(formData: FormData) { return { ...Object.fromEntries(formData.entries()), isFeatured: formData.get("isFeatured") === "on", isPublished: formData.get("isPublished") === "on" }; }
-function validImagePath(path: string) { return (path.startsWith("/images/") && !path.includes("..") && !path.includes("\\")) || path.startsWith("https://picsum.photos/"); }
 function refreshPutter(id: string, slug: string) { revalidateTag(`putter:${id}`, "max"); revalidateTag("putters", "max"); revalidatePath("/"); revalidatePath("/[locale]/collection", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }
 
 export async function savePutterAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
@@ -38,16 +39,30 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   const result = putterAdminSchema.safeParse(toObject(formData));
   if (!result.success) { const fields = result.error.flatten().fieldErrors; return { status: "error", message: "Review the highlighted fields.", errors: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, value?.[0] ?? "Invalid value"])) }; }
   const data = result.data; const db = getDb();
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
+  if (invalidImage) return { status: "error", message: "The image list contains an unapproved path or storage key." };
   const values = { slug: data.slug, brand: data.brand, model: data.model, status: data.status, headMaterial: data.headMaterial || null, headStyle: data.headStyle || null, releaseYear: data.releaseYear === "" ? null : data.releaseYear, priceMode: data.priceMode, priceCents: data.priceCents === "" ? null : data.priceCents, priceCurrency: data.priceCurrency.toUpperCase(), isFeatured: data.isFeatured, isPublished: data.isPublished, updatedAt: new Date(), publishedAt: data.isPublished ? new Date() : null };
   let id = data.id;
+  const previousImages = id ? await db.select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, id)) : [];
   if (id) await db.update(putters).set(values).where(eq(putters.id, id));
   else { const [created] = await db.insert(putters).values(values).returning({ id: putters.id }); id = created.id; }
   for (const [locale, title] of [["zh-hant", data.titleZhHant], ["zh-hans", data.titleZhHans], ["en", data.titleEn]] as const) {
     await db.insert(putterTranslations).values({ putterId: id, locale, title }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title } });
   }
-  const paths = (data.imagePaths ?? "").split(/\r?\n/).map((path) => path.trim()).filter(Boolean);
-  if (paths.some((path) => !validImagePath(path))) return { status: "error", message: "Image paths must be repository /images paths or picsum.photos development URLs." };
-  if (paths.length) { await db.delete(putterImages).where(eq(putterImages.putterId, id)); await db.insert(putterImages).values(paths.map((src, index) => ({ putterId: id!, src, sortOrder: index, isPrimary: index === 0, altZhHant: data.titleZhHant, altZhHans: data.titleZhHans, altEn: data.titleEn }))); }
+  await db.delete(putterImages).where(eq(putterImages.putterId, id));
+  if (data.imagesJson.length) {
+    await db.insert(putterImages).values(data.imagesJson.map((image, index) => ({
+      putterId: id!, src: image.src, storageKey: image.storageKey || null,
+      width: image.width || null, height: image.height || null,
+      sortOrder: index, isPrimary: index === 0,
+      altZhHant: data.titleZhHant, altZhHans: data.titleZhHans, altEn: data.titleEn,
+    })));
+  }
+  const retainedKeys = new Set(data.imagesJson.map((image) => image.storageKey).filter(Boolean));
+  const removedKeys = previousImages.map((image) => image.storageKey).filter((key): key is string => Boolean(key) && !retainedKeys.has(key));
+  const deletions = await Promise.allSettled(removedKeys.map((key) => deleteCloudinaryImage(key)));
+  deletions.forEach((deletion, index) => { if (deletion.status === "rejected") console.error(`Could not delete Cloudinary asset ${removedKeys[index]}`, deletion.reason); });
   refreshPutter(id, data.slug); redirect(`/admin/putters/${id}?saved=1`);
 }
 
@@ -63,7 +78,13 @@ export async function deletePutterAction(formData: FormData) {
   await requireAdmin(); if (!hasDatabase()) return;
   const id = String(formData.get("id")); const slug = String(formData.get("slug")); const confirmation = String(formData.get("confirmation"));
   if (confirmation !== slug) return;
-  await getDb().delete(putters).where(and(eq(putters.id, id), eq(putters.slug, slug))); refreshPutter(id, slug); redirect("/admin/putters");
+  const images = await getDb().select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, id));
+  const [deleted] = await getDb().delete(putters).where(and(eq(putters.id, id), eq(putters.slug, slug))).returning({ id: putters.id });
+  if (!deleted) return;
+  const keys = images.map((image) => image.storageKey).filter((key): key is string => Boolean(key));
+  const deletions = await Promise.allSettled(keys.map((key) => deleteCloudinaryImage(key)));
+  deletions.forEach((deletion, index) => { if (deletion.status === "rejected") console.error(`Could not delete Cloudinary asset ${keys[index]}`, deletion.reason); });
+  refreshPutter(id, slug); redirect("/admin/putters");
 }
 
 export async function updateInquiryAction(formData: FormData) {

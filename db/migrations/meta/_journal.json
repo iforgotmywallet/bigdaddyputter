@@ -15,6 +15,13 @@
       "when": 1786666814855,
       "tag": "0001_freezing_prima",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787527650498,
+      "tag": "0002_burly_jane_foster",
+      "breakpoints": true
     }
   ]
 }
