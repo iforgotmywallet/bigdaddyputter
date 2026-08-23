@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+
+# environment and secrets
+.env
+.env.local
+.env.production
+.env*.local
+
+# system
+.DS_Store
+*.pem
+*.log
+
+# typescript
+*.tsbuildinfo
