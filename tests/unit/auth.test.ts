@@ -12,4 +12,10 @@ describe("admin session validation", () => {
 describe("unified admin locale", () => {
   it("renders Traditional Chinese owner copy", () => expect(getAdminMessages("zh-hant").dashboard.title).toBe("典藏管理台"));
   it("renders Simplified Chinese status labels", () => expect(adminStatusLabel("zh-hans", "available")).toBe("可供咨询"));
+  it("localizes the Simplified Chinese putter editor", () => {
+    const editor = getAdminMessages("zh-hans").putterEditor;
+    expect(editor.newTitle).toBe("新增藏品");
+    expect(editor.photography.chooseFiles).toBe("选择文件");
+    expect(editor.priceModes.on_request).toBe("咨询报价");
+  });
 });

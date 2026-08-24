@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
+import type { AdminPutterEditorMessages } from "@/lib/admin-i18n";
 import type { AdminImageInput } from "@/lib/images/paths";
 
 const MAX_IMAGES = 12;
@@ -15,7 +16,6 @@ interface SignatureResponse {
   timestamp: number;
   folder: string;
   signature: string;
-  error?: string;
 }
 
 interface UploadResponse {
@@ -23,14 +23,22 @@ interface UploadResponse {
   public_id?: string;
   width?: number;
   height?: number;
-  error?: { message?: string };
 }
 
 function keyFor(image: AdminImageInput) {
   return image.storageKey || image.src;
 }
 
-export function AdminImageManager({ initialImages = [] }: { initialImages?: AdminImageInput[] }) {
+function formatMessage(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce((message, [key, value]) => message.replace(`{${key}}`, String(value)), template);
+}
+
+interface AdminImageManagerProps {
+  initialImages?: AdminImageInput[];
+  labels: AdminPutterEditorMessages["photography"];
+}
+
+export function AdminImageManager({ initialImages = [], labels }: AdminImageManagerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<AdminImageInput[]>(initialImages);
   const [uploading, setUploading] = useState(false);
@@ -42,10 +50,10 @@ export function AdminImageManager({ initialImages = [] }: { initialImages?: Admi
   async function uploadFiles(files: File[]) {
     setMessage("");
     const remaining = MAX_IMAGES - images.length;
-    if (remaining <= 0) return setMessage(`A product can have up to ${MAX_IMAGES} images.`);
+    if (remaining <= 0) return setMessage(formatMessage(labels.limitError, { max: MAX_IMAGES }));
     const accepted = files.slice(0, remaining);
     const invalid = accepted.find((file) => !ACCEPTED_TYPES.has(file.type) || file.size > MAX_FILE_BYTES);
-    if (invalid) return setMessage(`${invalid.name} must be a JPEG, PNG, or WebP image under 12 MB.`);
+    if (invalid) return setMessage(formatMessage(labels.fileError, { name: invalid.name }));
     if (!accepted.length) return;
 
     setUploading(true);
@@ -54,7 +62,7 @@ export function AdminImageManager({ initialImages = [] }: { initialImages?: Admi
     try {
       const signatureResponse = await fetch("/api/admin/cloudinary/signature", { method: "POST" });
       const signature = await signatureResponse.json() as SignatureResponse;
-      if (!signatureResponse.ok) throw new Error(signature.error || "Could not prepare the upload.");
+      if (!signatureResponse.ok) throw new Error(labels.prepareError);
 
       const uploaded: AdminImageInput[] = [];
       for (const file of accepted) {
@@ -66,13 +74,13 @@ export function AdminImageManager({ initialImages = [] }: { initialImages?: Admi
         payload.set("signature", signature.signature);
         const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/image/upload`, { method: "POST", body: payload });
         const result = await response.json() as UploadResponse;
-        if (!response.ok || !result.secure_url || !result.public_id) throw new Error(result.error?.message || `Could not upload ${file.name}.`);
+        if (!response.ok || !result.secure_url || !result.public_id) throw new Error(formatMessage(labels.fileUploadError, { name: file.name }));
         uploaded.push({ src: result.secure_url, storageKey: result.public_id, width: result.width, height: result.height });
         setCompleted((value) => value + 1);
       }
       setImages((current) => [...current, ...uploaded]);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Image upload failed. Please try again.");
+      setMessage(error instanceof Error ? error.message : labels.uploadError);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -109,13 +117,13 @@ export function AdminImageManager({ initialImages = [] }: { initialImages?: Admi
 
   return (
     <fieldset className="admin-image-fieldset">
-      <legend>Photography</legend>
+      <legend>{labels.legend}</legend>
       <input type="hidden" name="imagesJson" value={JSON.stringify(images)} />
       <div className="admin-image-heading">
         <div>
-          <p className="admin-image-kicker">Cloudinary product library</p>
-          <h2>Build the visual record.</h2>
-          <p>Upload up to {MAX_IMAGES} high-resolution product images. The first image becomes the catalogue cover.</p>
+          <p className="admin-image-kicker">{labels.kicker}</p>
+          <h2>{labels.title}</h2>
+          <p>{formatMessage(labels.intro, { max: MAX_IMAGES })}</p>
         </div>
         <span className="admin-image-count"><strong>{String(images.length).padStart(2, "0")}</strong> / {MAX_IMAGES}</span>
       </div>
@@ -129,34 +137,34 @@ export function AdminImageManager({ initialImages = [] }: { initialImages?: Admi
       >
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={selectFiles} />
         <span className="admin-upload-mark" aria-hidden="true">↥</span>
-        <div><strong>{uploading ? `Uploading ${completed + 1} of ${queued}…` : "Drop product photographs here"}</strong><small>JPEG, PNG or WebP · 12 MB maximum each</small></div>
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading || images.length >= MAX_IMAGES}>{uploading ? "Uploading…" : "Choose files"}</button>
+        <div><strong>{uploading ? formatMessage(labels.uploadingProgress, { current: completed + 1, total: queued }) : labels.drop}</strong><small>{labels.formats}</small></div>
+        <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading || images.length >= MAX_IMAGES}>{uploading ? labels.uploading : labels.chooseFiles}</button>
       </div>
 
       {message ? <p className="admin-image-message" role="alert">{message}</p> : null}
 
       {images.length ? (
-        <div className="admin-image-contact-sheet" aria-label="Product image order">
+        <div className="admin-image-contact-sheet" aria-label={labels.orderLabel}>
           {images.map((image, index) => (
             <article className="admin-image-card" key={keyFor(image)}>
               <div className="admin-image-preview">
                 <Image src={image.src} alt="" fill sizes="(max-width: 700px) 44vw, 220px" />
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                {index === 0 ? <strong>Primary</strong> : null}
+                {index === 0 ? <strong>{labels.primary}</strong> : null}
               </div>
               <div className="admin-image-meta">
-                <p>{image.width && image.height ? `${image.width} × ${image.height}` : "Stored image"}</p>
+                <p>{image.width && image.height ? `${image.width} × ${image.height}` : labels.storedImage}</p>
                 <div className="admin-image-actions">
-                  {index > 0 ? <button type="button" onClick={() => makePrimary(index)}>Make primary</button> : null}
-                  <button type="button" aria-label="Move image left" onClick={() => move(index, -1)} disabled={index === 0}>←</button>
-                  <button type="button" aria-label="Move image right" onClick={() => move(index, 1)} disabled={index === images.length - 1}>→</button>
-                  <button className="remove" type="button" onClick={() => remove(index)}>Remove</button>
+                  {index > 0 ? <button type="button" onClick={() => makePrimary(index)}>{labels.makePrimary}</button> : null}
+                  <button type="button" aria-label={labels.moveLeft} onClick={() => move(index, -1)} disabled={index === 0}>←</button>
+                  <button type="button" aria-label={labels.moveRight} onClick={() => move(index, 1)} disabled={index === images.length - 1}>→</button>
+                  <button className="remove" type="button" onClick={() => remove(index)}>{labels.remove}</button>
                 </div>
               </div>
             </article>
           ))}
         </div>
-      ) : <p className="admin-image-empty">No photographs yet. This record will use the storefront’s empty-image treatment until you upload one.</p>}
+      ) : <p className="admin-image-empty">{labels.empty}</p>}
     </fieldset>
   );
 }

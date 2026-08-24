@@ -17,8 +17,13 @@ import { LOCALE_PREFERENCE_COOKIE } from "@/lib/locale-preference";
 
 export interface AdminActionState { status: "idle" | "error" | "success"; message: string; errors?: Record<string, string>; }
 
+function adminLocaleFrom(formData: FormData): Locale {
+  const value = String(formData.get("adminLocale"));
+  return ["zh-hant", "zh-hans", "en"].includes(value) ? value as Locale : "en";
+}
+
 export async function loginAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
-  const locale = ["zh-hant", "zh-hans", "en"].includes(String(formData.get("adminLocale"))) ? String(formData.get("adminLocale")) as Locale : "en";
+  const locale = adminLocaleFrom(formData);
   const loginMessages = getAdminMessages(locale).login;
   const result = adminLoginSchema.safeParse({ password: formData.get("password") });
   if (!result.success) return { status: "error", message: loginMessages.invalid };
@@ -35,13 +40,14 @@ function refreshPutter(id: string, slug: string) { revalidateTag(`putter:${id}`,
 
 export async function savePutterAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   await requireAdmin();
-  if (!hasDatabase()) return { status: "error", message: "Configure DATABASE_URL before editing catalogue records." };
+  const editorMessages = getAdminMessages(adminLocaleFrom(formData)).putterEditor;
+  if (!hasDatabase()) return { status: "error", message: editorMessages.errors.databaseRequired };
   const result = putterAdminSchema.safeParse(toObject(formData));
-  if (!result.success) { const fields = result.error.flatten().fieldErrors; return { status: "error", message: "Review the highlighted fields.", errors: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, value?.[0] ?? "Invalid value"])) }; }
+  if (!result.success) { const fields = result.error.flatten().fieldErrors; return { status: "error", message: editorMessages.errors.reviewFields, errors: Object.fromEntries(Object.keys(fields).map((key) => [key, editorMessages.errors.invalidField])) }; }
   const data = result.data; const db = getDb();
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
-  if (invalidImage) return { status: "error", message: "The image list contains an unapproved path or storage key." };
+  if (invalidImage) return { status: "error", message: editorMessages.errors.invalidImages };
   const values = { slug: data.slug, brand: data.brand, model: data.model, status: data.status, headMaterial: data.headMaterial || null, headStyle: data.headStyle || null, releaseYear: data.releaseYear === "" ? null : data.releaseYear, priceMode: data.priceMode, priceCents: data.priceCents === "" ? null : data.priceCents, priceCurrency: data.priceCurrency.toUpperCase(), isFeatured: data.isFeatured, isPublished: data.isPublished, updatedAt: new Date(), publishedAt: data.isPublished ? new Date() : null };
   let id = data.id;
   const previousImages = id ? await db.select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, id)) : [];
