@@ -67,7 +67,7 @@ export function PutterForm({ data = {}, labels, locale, statusLabels }: PutterFo
         <label><input type="checkbox" name="isPublished" defaultChecked={data.isPublished} /> {labels.published}</label>
       </div>
     </fieldset>
-    <AdminImageManager initialImages={data.images} labels={labels.photography} />
+    <AdminImageManager initialImages={data.images} labels={labels.photography} saveResult={state} />
     <SaveButton labels={labels} />
   </form>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import type { AdminPutterEditorMessages } from "@/lib/admin-i18n";
 import type { AdminImageInput } from "@/lib/images/paths";
@@ -9,13 +9,19 @@ import type { AdminImageInput } from "@/lib/images/paths";
 const MAX_IMAGES = 12;
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PENDING_UPLOADS_STORAGE_KEY = "admin_pending_cloudinary_uploads";
+const STALE_UPLOAD_AGE_MS = 24 * 60 * 60 * 1000;
 
 interface SignatureResponse {
   cloudName: string;
   apiKey: string;
   timestamp: number;
-  folder: string;
+  storageKey: string;
   signature: string;
+}
+
+interface SignatureBatchResponse {
+  uploads?: SignatureResponse[];
 }
 
 interface UploadResponse {
@@ -23,6 +29,45 @@ interface UploadResponse {
   public_id?: string;
   width?: number;
   height?: number;
+}
+
+interface CleanupResponse {
+  deleted?: string[];
+  retained?: string[];
+}
+
+interface PendingUploadRecord {
+  storageKey: string;
+  createdAt: number;
+}
+
+function readPendingUploads(): PendingUploadRecord[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(PENDING_UPLOADS_STORAGE_KEY) ?? "[]");
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is PendingUploadRecord => typeof item?.storageKey === "string" && typeof item?.createdAt === "number");
+  } catch {
+    return [];
+  }
+}
+
+function writePendingUploads(records: PendingUploadRecord[]) {
+  try {
+    if (records.length) localStorage.setItem(PENDING_UPLOADS_STORAGE_KEY, JSON.stringify(records));
+    else localStorage.removeItem(PENDING_UPLOADS_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in private browsing; in-page cleanup still runs.
+  }
+}
+
+function rememberPendingUpload(storageKey: string) {
+  const records = readPendingUploads().filter((record) => record.storageKey !== storageKey);
+  writePendingUploads([...records, { storageKey, createdAt: Date.now() }]);
+}
+
+function forgetPendingUploads(storageKeys: string[]) {
+  const forgotten = new Set(storageKeys);
+  writePendingUploads(readPendingUploads().filter((record) => !forgotten.has(record.storageKey)));
 }
 
 function keyFor(image: AdminImageInput) {
@@ -36,16 +81,71 @@ function formatMessage(template: string, values: Record<string, string | number>
 interface AdminImageManagerProps {
   initialImages?: AdminImageInput[];
   labels: AdminPutterEditorMessages["photography"];
+  saveResult: { status: "idle" | "error" | "success"; message: string };
 }
 
-export function AdminImageManager({ initialImages = [], labels }: AdminImageManagerProps) {
+export function AdminImageManager({ initialImages = [], labels, saveResult }: AdminImageManagerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const pendingKeysRef = useRef(new Set<string>());
+  const cleanupInFlightRef = useRef(new Set<string>());
+  const submittingRef = useRef(false);
   const [images, setImages] = useState<AdminImageInput[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [completed, setCompleted] = useState(0);
   const [queued, setQueued] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [message, setMessage] = useState("");
+
+  const cleanupUploads = useCallback(async (storageKeys: string[]) => {
+    const keys = [...new Set(storageKeys)].filter((key) => !cleanupInFlightRef.current.has(key));
+    if (!keys.length) return;
+    keys.forEach((key) => cleanupInFlightRef.current.add(key));
+    try {
+      for (let index = 0; index < keys.length; index += MAX_IMAGES) {
+        const batch = keys.slice(index, index + MAX_IMAGES);
+        const response = await fetch("/api/admin/cloudinary/cleanup", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ storageKeys: batch }),
+          keepalive: true,
+        });
+        const result = await response.json().catch(() => ({})) as CleanupResponse;
+        const completed = [...(result.deleted ?? []), ...(result.retained ?? [])];
+        if (response.ok || completed.length) {
+          completed.forEach((key) => pendingKeysRef.current.delete(key));
+          forgetPendingUploads(completed);
+        }
+      }
+    } catch {
+      // Persisted keys are retried on a later admin visit if the request is interrupted.
+    } finally {
+      keys.forEach((key) => cleanupInFlightRef.current.delete(key));
+    }
+  }, []);
+
+  useEffect(() => {
+    const staleKeys = readPendingUploads()
+      .filter((record) => Date.now() - record.createdAt >= STALE_UPLOAD_AGE_MS)
+      .map((record) => record.storageKey);
+    void cleanupUploads(staleKeys);
+
+    const form = inputRef.current?.form;
+    const markSubmitting = () => { submittingRef.current = true; };
+    const cleanCurrentUploads = () => {
+      if (!submittingRef.current) void cleanupUploads([...pendingKeysRef.current]);
+    };
+    form?.addEventListener("submit", markSubmitting);
+    window.addEventListener("pagehide", cleanCurrentUploads);
+    return () => {
+      form?.removeEventListener("submit", markSubmitting);
+      window.removeEventListener("pagehide", cleanCurrentUploads);
+      cleanCurrentUploads();
+    };
+  }, [cleanupUploads]);
+
+  useEffect(() => {
+    if (saveResult.status === "error") submittingRef.current = false;
+  }, [saveResult]);
 
   async function uploadFiles(files: File[]) {
     setMessage("");
@@ -59,27 +159,40 @@ export function AdminImageManager({ initialImages = [], labels }: AdminImageMana
     setUploading(true);
     setCompleted(0);
     setQueued(accepted.length);
+    const uploaded: AdminImageInput[] = [];
+    let preparedKeys: string[] = [];
     try {
-      const signatureResponse = await fetch("/api/admin/cloudinary/signature", { method: "POST" });
-      const signature = await signatureResponse.json() as SignatureResponse;
-      if (!signatureResponse.ok) throw new Error(labels.prepareError);
+      const signatureResponse = await fetch("/api/admin/cloudinary/signature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: accepted.length }),
+      });
+      const signatureBatch = await signatureResponse.json() as SignatureBatchResponse;
+      if (!signatureResponse.ok || signatureBatch.uploads?.length !== accepted.length) throw new Error(labels.prepareError);
+      const signatures = signatureBatch.uploads;
+      preparedKeys = signatures.map((signature) => signature.storageKey);
+      preparedKeys.forEach((storageKey) => {
+        pendingKeysRef.current.add(storageKey);
+        rememberPendingUpload(storageKey);
+      });
 
-      const uploaded: AdminImageInput[] = [];
-      for (const file of accepted) {
+      for (const [index, file] of accepted.entries()) {
+        const signature = signatures[index];
         const payload = new FormData();
         payload.set("file", file);
         payload.set("api_key", signature.apiKey);
         payload.set("timestamp", String(signature.timestamp));
-        payload.set("folder", signature.folder);
+        payload.set("public_id", signature.storageKey);
         payload.set("signature", signature.signature);
         const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/image/upload`, { method: "POST", body: payload });
         const result = await response.json() as UploadResponse;
-        if (!response.ok || !result.secure_url || !result.public_id) throw new Error(formatMessage(labels.fileUploadError, { name: file.name }));
+        if (!response.ok || !result.secure_url || result.public_id !== signature.storageKey) throw new Error(formatMessage(labels.fileUploadError, { name: file.name }));
         uploaded.push({ src: result.secure_url, storageKey: result.public_id, width: result.width, height: result.height });
         setCompleted((value) => value + 1);
       }
       setImages((current) => [...current, ...uploaded]);
     } catch (error) {
+      void cleanupUploads(preparedKeys);
       setMessage(error instanceof Error ? error.message : labels.uploadError);
     } finally {
       setUploading(false);
@@ -112,6 +225,8 @@ export function AdminImageManager({ initialImages = [], labels }: AdminImageMana
   }
 
   function remove(index: number) {
+    const storageKey = images[index]?.storageKey;
+    if (storageKey && pendingKeysRef.current.has(storageKey)) void cleanupUploads([storageKey]);
     setImages((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 

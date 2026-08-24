@@ -1,6 +1,7 @@
 "use server";
 
 import { compare } from "bcryptjs";
+import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -10,7 +11,7 @@ import { inquiries, putterImages, putters, putterTranslations, siteSettings, tes
 import { clearAdminSession, createAdminSession, requireAdmin } from "@/lib/auth/session";
 import { adminLoginSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { getAdminMessages } from "@/lib/admin-i18n";
-import { deleteCloudinaryImage } from "@/lib/images/cloudinary";
+import { deleteUnreferencedCloudinaryImages } from "@/lib/images/cloudinary-cleanup";
 import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/paths";
 import type { Locale } from "@/lib/types";
 import { LOCALE_PREFERENCE_COOKIE } from "@/lib/locale-preference";
@@ -49,26 +50,42 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
   if (invalidImage) return { status: "error", message: editorMessages.errors.invalidImages };
   const values = { slug: data.slug, brand: data.brand, model: data.model, status: data.status, headMaterial: data.headMaterial || null, headStyle: data.headStyle || null, releaseYear: data.releaseYear === "" ? null : data.releaseYear, priceMode: data.priceMode, priceCents: data.priceCents === "" ? null : data.priceCents, priceCurrency: data.priceCurrency.toUpperCase(), isFeatured: data.isFeatured, isPublished: data.isPublished, updatedAt: new Date(), publishedAt: data.isPublished ? new Date() : null };
-  let id = data.id;
-  const previousImages = id ? await db.select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, id)) : [];
-  if (id) await db.update(putters).set(values).where(eq(putters.id, id));
-  else { const [created] = await db.insert(putters).values(values).returning({ id: putters.id }); id = created.id; }
-  for (const [locale, title] of [["zh-hant", data.titleZhHant], ["zh-hans", data.titleZhHans], ["en", data.titleEn]] as const) {
-    await db.insert(putterTranslations).values({ putterId: id, locale, title }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title } });
-  }
-  await db.delete(putterImages).where(eq(putterImages.putterId, id));
-  if (data.imagesJson.length) {
-    await db.insert(putterImages).values(data.imagesJson.map((image, index) => ({
-      putterId: id!, src: image.src, storageKey: image.storageKey || null,
-      width: image.width || null, height: image.height || null,
-      sortOrder: index, isPrimary: index === 0,
-      altZhHant: data.titleZhHant, altZhHans: data.titleZhHans, altEn: data.titleEn,
-    })));
+  const id = data.id ?? randomUUID();
+  let previousImages: Array<{ storageKey: string | null }> = [];
+  try {
+    previousImages = data.id ? await db.select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, data.id)) : [];
+    const putterMutation = data.id
+      ? db.update(putters).set(values).where(eq(putters.id, data.id))
+      : db.insert(putters).values({ id, ...values });
+    const translationZhHant = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hant", title: data.titleZhHant }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleZhHant } });
+    const translationZhHans = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hans", title: data.titleZhHans }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleZhHans } });
+    const translationEn = db.insert(putterTranslations).values({ putterId: id, locale: "en", title: data.titleEn }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleEn } });
+    const resetImages = db.delete(putterImages).where(eq(putterImages.putterId, id));
+
+    // drizzle/neon-http batches execute as one non-interactive Neon transaction.
+    if (data.imagesJson.length) {
+      const insertImages = db.insert(putterImages).values(data.imagesJson.map((image, index) => ({
+        putterId: id, src: image.src, storageKey: image.storageKey || null,
+        width: image.width || null, height: image.height || null,
+        sortOrder: index, isPrimary: index === 0,
+        altZhHant: data.titleZhHant, altZhHans: data.titleZhHans, altEn: data.titleEn,
+      })));
+      await db.batch([putterMutation, translationZhHant, translationZhHans, translationEn, resetImages, insertImages]);
+    } else {
+      await db.batch([putterMutation, translationZhHant, translationZhHans, translationEn, resetImages]);
+    }
+  } catch (error) {
+    console.error("Could not save putter atomically", error);
+    return { status: "error", message: editorMessages.errors.saveFailed };
   }
   const retainedKeys = new Set(data.imagesJson.map((image) => image.storageKey).filter(Boolean));
   const removedKeys = previousImages.map((image) => image.storageKey).filter((key): key is string => Boolean(key) && !retainedKeys.has(key));
-  const deletions = await Promise.allSettled(removedKeys.map((key) => deleteCloudinaryImage(key)));
-  deletions.forEach((deletion, index) => { if (deletion.status === "rejected") console.error(`Could not delete Cloudinary asset ${removedKeys[index]}`, deletion.reason); });
+  try {
+    const cleanup = await deleteUnreferencedCloudinaryImages(removedKeys);
+    cleanup.failed.forEach((key) => console.error(`Could not delete Cloudinary asset ${key}`));
+  } catch (error) {
+    console.error("Could not clean up removed Cloudinary assets", error);
+  }
   refreshPutter(id, data.slug); redirect(`/admin/putters/${id}?saved=1`);
 }
 
@@ -88,8 +105,12 @@ export async function deletePutterAction(formData: FormData) {
   const [deleted] = await getDb().delete(putters).where(and(eq(putters.id, id), eq(putters.slug, slug))).returning({ id: putters.id });
   if (!deleted) return;
   const keys = images.map((image) => image.storageKey).filter((key): key is string => Boolean(key));
-  const deletions = await Promise.allSettled(keys.map((key) => deleteCloudinaryImage(key)));
-  deletions.forEach((deletion, index) => { if (deletion.status === "rejected") console.error(`Could not delete Cloudinary asset ${keys[index]}`, deletion.reason); });
+  try {
+    const cleanup = await deleteUnreferencedCloudinaryImages(keys);
+    cleanup.failed.forEach((key) => console.error(`Could not delete Cloudinary asset ${key}`));
+  } catch (error) {
+    console.error("Could not clean up deleted putter assets", error);
+  }
   refreshPutter(id, slug); redirect("/admin/putters");
 }
 

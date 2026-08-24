@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { slugSchema } from "@/lib/validation/collection";
+import { isManagedCloudinaryKey } from "@/lib/images/paths";
 
 export const adminLoginSchema = z.object({ password: z.string().min(8).max(200) });
 
@@ -22,6 +23,10 @@ export const siteSettingsAdminSchema = z.object({
   wechatId: z.string().trim().max(120),
   instagramUrl: optionalHttpUrlSchema,
   xiaohongshuUrl: optionalHttpUrlSchema,
+});
+
+export const cloudinaryCleanupSchema = z.object({
+  storageKeys: z.array(z.string().max(600).refine(isManagedCloudinaryKey)).max(12),
 });
 
 const adminImageSchema = z.object({

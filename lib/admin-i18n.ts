@@ -62,6 +62,7 @@ export interface AdminPutterEditorMessages {
     reviewFields: string;
     invalidField: string;
     invalidImages: string;
+    saveFailed: string;
   };
 }
 
@@ -109,7 +110,7 @@ const messages = {
         prepareError: "Could not prepare the upload.", uploadError: "Image upload failed. Please try again.", fileUploadError: "Could not upload {name}.",
       },
       actions: { title: "Record actions", intro: "Duplicated records start private. Deletion requires the exact slug.", duplicate: "Duplicate", confirmation: "Type {slug}", delete: "Delete" },
-      errors: { databaseRequired: "Configure DATABASE_URL before editing catalogue records.", reviewFields: "Review the highlighted fields.", invalidField: "Enter a valid value.", invalidImages: "The image list contains an unapproved path or storage key." },
+      errors: { databaseRequired: "Configure DATABASE_URL before editing catalogue records.", reviewFields: "Review the highlighted fields.", invalidField: "Enter a valid value.", invalidImages: "The image list contains an unapproved path or storage key.", saveFailed: "The record could not be saved. No catalogue changes were applied." },
     } satisfies AdminPutterEditorMessages,
   },
   "zh-hant": {
@@ -155,7 +156,7 @@ const messages = {
         prepareError: "目前無法準備上傳。", uploadError: "圖片上傳失敗，請再試一次。", fileUploadError: "無法上傳 {name}。",
       },
       actions: { title: "藏品操作", intro: "複製的藏品會先設為私人；刪除時必須輸入完整網址代稱。", duplicate: "複製", confirmation: "輸入 {slug}", delete: "刪除" },
-      errors: { databaseRequired: "請先設定 DATABASE_URL 才能編輯典藏記錄。", reviewFields: "請檢查標示的欄位。", invalidField: "請輸入有效資料。", invalidImages: "圖片清單包含未核准的路徑或儲存識別碼。" },
+      errors: { databaseRequired: "請先設定 DATABASE_URL 才能編輯典藏記錄。", reviewFields: "請檢查標示的欄位。", invalidField: "請輸入有效資料。", invalidImages: "圖片清單包含未核准的路徑或儲存識別碼。", saveFailed: "無法儲存記錄，典藏資料未有任何變更。" },
     } satisfies AdminPutterEditorMessages,
   },
   "zh-hans": {
@@ -201,7 +202,7 @@ const messages = {
         prepareError: "目前无法准备上传。", uploadError: "图片上传失败，请重试。", fileUploadError: "无法上传 {name}。",
       },
       actions: { title: "藏品操作", intro: "复制的藏品会先设为私人；删除时必须输入完整网址别名。", duplicate: "复制", confirmation: "输入 {slug}", delete: "删除" },
-      errors: { databaseRequired: "请先设置 DATABASE_URL 才能编辑典藏记录。", reviewFields: "请检查标记的字段。", invalidField: "请输入有效内容。", invalidImages: "图片列表包含未获准的路径或存储标识。" },
+      errors: { databaseRequired: "请先设置 DATABASE_URL 才能编辑典藏记录。", reviewFields: "请检查标记的字段。", invalidField: "请输入有效内容。", invalidImages: "图片列表包含未获准的路径或存储标识。", saveFailed: "无法保存记录，典藏数据未发生任何更改。" },
     } satisfies AdminPutterEditorMessages,
   },
 } as const;

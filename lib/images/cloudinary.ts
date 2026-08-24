@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
 import { CLOUDINARY_PRODUCT_FOLDER, isManagedCloudinaryKey } from "@/lib/images/paths";
 
@@ -17,9 +18,9 @@ function getCredentials() {
 export function createCloudinaryUploadSignature() {
   const { cloudName, apiKey, apiSecret } = getCredentials();
   const timestamp = Math.floor(Date.now() / 1000);
-  const folder = CLOUDINARY_PRODUCT_FOLDER;
-  const signature = cloudinary.utils.api_sign_request({ folder, timestamp }, apiSecret);
-  return { cloudName, apiKey, timestamp, folder, signature };
+  const storageKey = `${CLOUDINARY_PRODUCT_FOLDER}/${randomUUID()}`;
+  const signature = cloudinary.utils.api_sign_request({ public_id: storageKey, timestamp }, apiSecret);
+  return { cloudName, apiKey, timestamp, storageKey, signature };
 }
 
 export async function deleteCloudinaryImage(storageKey: string) {

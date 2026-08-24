@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCollectionFilters, slugSchema } from "@/lib/validation/collection";
 import { inquirySchema } from "@/lib/validation/inquiry";
 import { customerInterestSchema, customerProfileSchema } from "@/lib/validation/customer";
-import { siteSettingsAdminSchema } from "@/lib/validation/admin";
+import { cloudinaryCleanupSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 
 describe("slug validation", () => {
   it("accepts normalized slugs", () => expect(slugSchema.safeParse("atelier-01-gss").success).toBe(true));
@@ -43,5 +43,13 @@ describe("admin site settings validation", () => {
   it("rejects invalid email and non-http channel URLs", () => {
     expect(siteSettingsAdminSchema.safeParse({ ...valid, contactEmail: "not-an-email" }).success).toBe(false);
     expect(siteSettingsAdminSchema.safeParse({ ...valid, whatsappUrl: "javascript:alert(1)" }).success).toBe(false);
+  });
+});
+
+describe("Cloudinary cleanup validation", () => {
+  it("accepts only bounded product-folder keys", () => {
+    expect(cloudinaryCleanupSchema.safeParse({ storageKeys: ["bigdaddyputter/products/item-123"] }).success).toBe(true);
+    expect(cloudinaryCleanupSchema.safeParse({ storageKeys: ["bigdaddyputter/avatars/item-123"] }).success).toBe(false);
+    expect(cloudinaryCleanupSchema.safeParse({ storageKeys: Array.from({ length: 13 }, (_, index) => `bigdaddyputter/products/${index}`) }).success).toBe(false);
   });
 });
