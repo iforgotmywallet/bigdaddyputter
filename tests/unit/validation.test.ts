@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCollectionFilters, slugSchema } from "@/lib/validation/collection";
 import { inquirySchema } from "@/lib/validation/inquiry";
 import { customerInterestSchema, customerProfileSchema } from "@/lib/validation/customer";
+import { siteSettingsAdminSchema } from "@/lib/validation/admin";
 
 describe("slug validation", () => {
   it("accepts normalized slugs", () => expect(slugSchema.safeParse("atelier-01-gss").success).toBe(true));
@@ -23,4 +24,24 @@ describe("inquiry validation", () => {
 describe("customer account validation", () => {
   it("accepts bounded profile settings", () => expect(customerProfileSchema.safeParse({ name: "Ethan Collector", preferredLocale: "en", countryRegion: "Hong Kong", phone: "+852 5555 5555", contactPreference: "whatsapp", marketingOptIn: false }).success).toBe(true));
   it("rejects forged interest identifiers", () => expect(customerInterestSchema.safeParse({ putterId: "not-a-uuid", locale: "en", slug: "../private" }).success).toBe(false));
+});
+
+describe("admin site settings validation", () => {
+  const valid = {
+    brandName: "The Putter Archive",
+    logoText: "TPA / HK",
+    defaultLocale: "zh-hant",
+    contactEmail: "collector@example.com",
+    location: "Hong Kong",
+    whatsappUrl: "",
+    wechatId: "",
+    instagramUrl: "https://instagram.com/putterarchive",
+    xiaohongshuUrl: "",
+  };
+
+  it("accepts empty optional contact channels", () => expect(siteSettingsAdminSchema.safeParse(valid).success).toBe(true));
+  it("rejects invalid email and non-http channel URLs", () => {
+    expect(siteSettingsAdminSchema.safeParse({ ...valid, contactEmail: "not-an-email" }).success).toBe(false);
+    expect(siteSettingsAdminSchema.safeParse({ ...valid, whatsappUrl: "javascript:alert(1)" }).success).toBe(false);
+  });
 });

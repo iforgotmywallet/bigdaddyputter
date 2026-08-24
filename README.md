@@ -30,7 +30,7 @@ BETTER_AUTH_URL="http://localhost:3000"
 
 Customer accounts require `DATABASE_URL`. Apply the included migrations with `npm run db:migrate`, restart the app, then use `/en/account/signup` (or the equivalent localized URL). Better Auth stores password hashes—not plaintext passwords—in `customer_account`. Customer sessions, profile preferences, and interest lists use their own customer tables; the existing environment-password admin login is unchanged.
 
-The default language is managed in **Admin → Settings**. It controls both the root homepage redirect and the owner console language; visitors can still switch between Traditional Chinese, Simplified Chinese, and English. This global setting is stored in Postgres, so `DATABASE_URL` must be configured.
+The default language and public contact channels are managed in **Admin → Settings**. The language controls both the root homepage redirect and the owner console; visitors can still switch between Traditional Chinese, Simplified Chinese, and English. Contact email, WhatsApp, WeChat, Instagram, and Xiaohongshu settings are stored in Postgres and no longer use public environment variables, so `DATABASE_URL` must be configured.
 
 ### Product images
 

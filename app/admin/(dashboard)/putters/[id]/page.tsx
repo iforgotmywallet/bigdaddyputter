@@ -3,16 +3,13 @@ import { notFound } from "next/navigation";
 import { deletePutterAction, duplicatePutterAction } from "@/app/admin/actions";
 import { PutterForm } from "@/components/admin/putter-form";
 import { getAdminPutterEditor } from "@/db/queries/admin";
-import { getSiteSettings } from "@/db/queries/settings";
-import { getAdminMessages } from "@/lib/admin-i18n";
-import { getPreferredLocale } from "@/lib/locale-preference";
+import { getAdminLanguage } from "@/lib/admin-language";
 
 export default async function EditPutterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [record, settings] = await Promise.all([getAdminPutterEditor(id), getSiteSettings()]);
+  const [record, language] = await Promise.all([getAdminPutterEditor(id), getAdminLanguage()]);
   if (!record) notFound();
-  const locale = await getPreferredLocale(settings.defaultLocale);
-  const messages = getAdminMessages(locale);
+  const { locale, messages } = language;
   const labels = messages.putterEditor;
 
   return <>

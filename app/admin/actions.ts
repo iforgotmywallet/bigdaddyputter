@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { getDb, hasDatabase } from "@/db/client";
 import { inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
 import { clearAdminSession, createAdminSession, requireAdmin } from "@/lib/auth/session";
-import { adminLoginSchema, putterAdminSchema } from "@/lib/validation/admin";
+import { adminLoginSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { getAdminMessages } from "@/lib/admin-i18n";
 import { deleteCloudinaryImage } from "@/lib/images/cloudinary";
 import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/paths";
@@ -109,8 +109,16 @@ export async function saveTestimonialAction(formData: FormData) {
 
 export async function saveSettingsAction(formData: FormData) {
   await requireAdmin(); if (!hasDatabase()) return;
-  const values = { brandName: String(formData.get("brandName") ?? "").trim().slice(0, 120), logoText: String(formData.get("logoText") ?? "").trim().slice(0, 80), defaultLocale: String(formData.get("defaultLocale") ?? "zh-hant"), contactEmail: String(formData.get("contactEmail") ?? "").trim().slice(0, 180), location: String(formData.get("location") ?? "").trim().slice(0, 120), updatedAt: new Date() };
-  if (!values.brandName || !values.logoText || !["zh-hant", "zh-hans", "en"].includes(values.defaultLocale)) return;
+  const result = siteSettingsAdminSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!result.success) redirect("/admin/settings?error=1");
+  const values = {
+    ...result.data,
+    whatsappUrl: result.data.whatsappUrl || null,
+    wechatId: result.data.wechatId || null,
+    instagramUrl: result.data.instagramUrl || null,
+    xiaohongshuUrl: result.data.xiaohongshuUrl || null,
+    updatedAt: new Date(),
+  };
   const [existing] = await getDb().select({ id: siteSettings.id }).from(siteSettings).limit(1);
   if (existing) await getDb().update(siteSettings).set(values).where(eq(siteSettings.id, existing.id)); else await getDb().insert(siteSettings).values(values);
   (await cookies()).set(LOCALE_PREFERENCE_COOKIE, values.defaultLocale, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createSessionToken, verifySessionToken } from "@/lib/auth/token";
-import { adminStatusLabel, getAdminMessages } from "@/lib/admin-i18n";
+import { adminContactMethodLabel, adminInquiryStatusLabel, adminLocaleLabel, adminStatusLabel, getAdminMessages } from "@/lib/admin-i18n";
+
+function messagePaths(value: unknown, prefix = ""): string[] {
+  if (typeof value !== "object" || value === null) return [prefix];
+  return Object.entries(value).flatMap(([key, item]) => messagePaths(item, prefix ? `${prefix}.${key}` : key)).sort();
+}
 
 describe("admin session validation", () => {
   const secret = "a-secure-test-secret-with-more-than-thirty-two-characters";
@@ -17,5 +22,24 @@ describe("unified admin locale", () => {
     expect(editor.newTitle).toBe("新增藏品");
     expect(editor.photography.chooseFiles).toBe("选择文件");
     expect(editor.priceModes.on_request).toBe("咨询报价");
+  });
+  it("localizes every Simplified Chinese admin tab", () => {
+    const messages = getAdminMessages("zh-hans");
+    expect(messages.dashboard.title).toBe("典藏管理台");
+    expect(messages.putters.title).toBe("推杆藏品");
+    expect(messages.inquiries.title).toBe("咨询");
+    expect(messages.testimonials.title).toBe("藏家评价");
+    expect(messages.settings.title).toBe("设置");
+  });
+  it("localizes stored admin values without changing their submitted keys", () => {
+    expect(adminStatusLabel("zh-hant", "display_only")).toBe("僅供典藏");
+    expect(adminInquiryStatusLabel("zh-hans", "contacted")).toBe("已联系");
+    expect(adminContactMethodLabel("zh-hans", "email")).toBe("邮箱");
+    expect(adminLocaleLabel("zh-hans", "zh-hant")).toBe("繁体中文");
+  });
+  it("keeps all admin dictionaries structurally synchronized", () => {
+    const englishPaths = messagePaths(getAdminMessages("en"));
+    expect(messagePaths(getAdminMessages("zh-hant"))).toEqual(englishPaths);
+    expect(messagePaths(getAdminMessages("zh-hans"))).toEqual(englishPaths);
   });
 });

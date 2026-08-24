@@ -1,7 +1,20 @@
 import Link from "next/link";
 import { getDashboardCounts, getAdminPutters } from "@/db/queries/admin";
-import { getSiteSettings } from "@/db/queries/settings";
-import { adminStatusLabel, getAdminMessages } from "@/lib/admin-i18n";
-import { getPreferredLocale } from "@/lib/locale-preference";
+import { adminDateLocale, adminStatusLabel } from "@/lib/admin-i18n";
+import { getAdminLanguage } from "@/lib/admin-language";
 
-export default async function AdminDashboard() { const [counts, recent, settings] = await Promise.all([getDashboardCounts(), getAdminPutters(), getSiteSettings()]); const locale = await getPreferredLocale(settings.defaultLocale); const m = getAdminMessages(locale); const metrics = [[m.dashboard.published, counts.total], [m.dashboard.available, counts.available], [m.dashboard.reserved, counts.reserved], [m.dashboard.sold, counts.sold], [m.dashboard.private, counts.privateCount], [m.dashboard.inquiries, counts.inquiries]]; const dateLocale = locale === "zh-hans" ? "zh-CN" : locale === "zh-hant" ? "zh-HK" : "en-HK"; return <><header className="admin-page-header"><div><p className="eyebrow">{m.dashboard.eyebrow}</p><h1>{m.dashboard.title}</h1></div><Link className="admin-primary" href="/admin/putters/new">{m.dashboard.newPutter}</Link></header><div className="admin-metrics">{metrics.map(([label, value]) => <article key={label}><span>{label}</span><strong>{String(value).padStart(2, "0")}</strong></article>)}</div><section className="admin-section"><div className="admin-section-title"><h2>{m.dashboard.recent}</h2><Link href="/admin/putters">{m.dashboard.viewCatalogue} →</Link></div><div className="admin-table">{recent.slice(0, 6).map((putter) => <Link className="admin-table-row" href={`/admin/putters/${putter.id}`} key={putter.id}><span>{putter.brand}</span><strong>{putter.model}</strong><i>{adminStatusLabel(locale, putter.status)}</i><time>{putter.updatedAt.toLocaleDateString(dateLocale)}</time></Link>)}</div></section></>; }
+export default async function AdminDashboard() {
+  const [counts, recent, language] = await Promise.all([getDashboardCounts(), getAdminPutters(), getAdminLanguage()]);
+  const { locale, messages } = language;
+  const m = messages.dashboard;
+  const metrics = [[m.published, counts.total], [m.available, counts.available], [m.reserved, counts.reserved], [m.sold, counts.sold], [m.private, counts.privateCount], [m.inquiries, counts.inquiries]];
+
+  return <>
+    <header className="admin-page-header"><div><p className="eyebrow">{m.eyebrow}</p><h1>{m.title}</h1></div><Link className="admin-primary" href="/admin/putters/new">{m.newPutter}</Link></header>
+    <div className="admin-metrics">{metrics.map(([label, value]) => <article key={label}><span>{label}</span><strong>{String(value).padStart(2, "0")}</strong></article>)}</div>
+    <section className="admin-section">
+      <div className="admin-section-title"><h2>{m.recent}</h2><Link href="/admin/putters">{m.viewCatalogue} →</Link></div>
+      {recent.length ? <div className="admin-table">{recent.slice(0, 6).map((putter) => <Link className="admin-table-row" href={`/admin/putters/${putter.id}`} key={putter.id}><span>{putter.brand}</span><strong>{putter.model}</strong><i>{adminStatusLabel(locale, putter.status)}</i><time>{putter.updatedAt.toLocaleDateString(adminDateLocale(locale))}</time></Link>)}</div> : <p className="admin-empty-state">{m.empty}</p>}
+    </section>
+  </>;
+}

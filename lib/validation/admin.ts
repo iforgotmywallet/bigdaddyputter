@@ -3,6 +3,27 @@ import { slugSchema } from "@/lib/validation/collection";
 
 export const adminLoginSchema = z.object({ password: z.string().min(8).max(200) });
 
+const optionalHttpUrlSchema = z.string().trim().max(500).refine((value) => {
+  if (!value) return true;
+  try {
+    return ["http:", "https:"].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+});
+
+export const siteSettingsAdminSchema = z.object({
+  brandName: z.string().trim().min(1).max(120),
+  logoText: z.string().trim().min(1).max(80),
+  defaultLocale: z.enum(["zh-hant", "zh-hans", "en"]),
+  contactEmail: z.string().trim().email().max(180),
+  location: z.string().trim().max(120),
+  whatsappUrl: optionalHttpUrlSchema,
+  wechatId: z.string().trim().max(120),
+  instagramUrl: optionalHttpUrlSchema,
+  xiaohongshuUrl: optionalHttpUrlSchema,
+});
+
 const adminImageSchema = z.object({
   src: z.string().trim().min(1).max(600),
   storageKey: z.string().trim().max(600).nullable().optional(),

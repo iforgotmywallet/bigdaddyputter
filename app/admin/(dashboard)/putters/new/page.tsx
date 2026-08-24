@@ -1,12 +1,8 @@
 import { PutterForm } from "@/components/admin/putter-form";
-import { getSiteSettings } from "@/db/queries/settings";
-import { getAdminMessages } from "@/lib/admin-i18n";
-import { getPreferredLocale } from "@/lib/locale-preference";
+import { getAdminLanguage } from "@/lib/admin-language";
 
 export default async function NewPutterPage() {
-  const settings = await getSiteSettings();
-  const locale = await getPreferredLocale(settings.defaultLocale);
-  const messages = getAdminMessages(locale);
+  const { locale, messages } = await getAdminLanguage();
 
   return <>
     <header className="admin-page-header">

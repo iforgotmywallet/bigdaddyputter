@@ -25,10 +25,6 @@ export const defaultSettings: SiteSettings = {
   },
   heroImageSrc: "https://picsum.photos/seed/putter-hero-archive/2400/1500",
   ownerImageSrc: "https://picsum.photos/seed/collector-room-hk/1400/1750",
-  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "collector@example.com",
-  whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL,
-  wechatId: process.env.NEXT_PUBLIC_WECHAT_ID,
-  instagramUrl: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
-  xiaohongshuUrl: process.env.NEXT_PUBLIC_XIAOHONGSHU_URL,
+  contactEmail: "collector@example.com",
   location: "Hong Kong",
 };
