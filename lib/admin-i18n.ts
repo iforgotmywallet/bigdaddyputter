@@ -5,27 +5,78 @@ export interface AdminPutterEditorMessages {
   newTitle: string;
   editEyebrow: string;
   preview: string;
+  previewUnavailable: string;
   identity: string;
-  localizedTitles: string;
+  identityIntro: string;
+  playingSpecifications: string;
+  playingSpecificationsIntro: string;
+  collectorDetails: string;
+  collectorDetailsIntro: string;
+  localizedContent: string;
+  localizedContentIntro: string;
+  localeEditorHint: string;
   catalogueState: string;
+  catalogueStateIntro: string;
   slug: string;
+  slugHelp: string;
   brand: string;
   model: string;
+  modelFamily: string;
+  modelFamilyHelp: string;
+  category: string;
   releaseYear: string;
   traditionalChinese: string;
   simplifiedChinese: string;
   english: string;
+  title: string;
+  subtitle: string;
+  overview: string;
+  collectorNotes: string;
+  conditionNotes: string;
+  provenanceText: string;
+  includedItems: string;
+  seoTitle: string;
+  seoDescription: string;
   status: string;
   headMaterial: string;
   headStyle: string;
+  finish: string;
+  neckType: string;
+  alignmentAid: string;
+  lengthInches: string;
+  loftDegrees: string;
+  lieDegrees: string;
+  headWeightGrams: string;
+  shaft: string;
+  grip: string;
+  headcover: string;
+  paintFill: string;
+  coaStatus: string;
+  coaHelp: string;
+  serialNumber: string;
+  conditionScore: string;
+  location: string;
+  provenanceSummary: string;
   priceMode: string;
-  priceCents: string;
+  priceAmount: string;
+  priceAmountHelp: string;
   currency: string;
+  currencyHelp: string;
   featured: string;
+  featuredHelp: string;
   published: string;
+  publishedHelp: string;
   saving: string;
   save: string;
+  saveHint: string;
   priceModes: Record<"hidden" | "amount" | "on_request", string>;
+  examples: {
+    headStyle: string;
+    headMaterial: string;
+    finish: string;
+    neckType: string;
+    alignmentAid: string;
+  };
   photography: {
     legend: string;
     kicker: string;
@@ -53,7 +104,13 @@ export interface AdminPutterEditorMessages {
   actions: {
     title: string;
     intro: string;
+    duplicateTitle: string;
+    duplicateIntro: string;
     duplicate: string;
+    deleteTitle: string;
+    deleteIntro: string;
+    revealDelete: string;
+    confirmationLabel: string;
     confirmation: string;
     delete: string;
   };
@@ -92,13 +149,20 @@ const messages = {
       publishImmediately: "Publish immediately", addStatement: "Add statement", empty: "No testimonials have been added yet.",
     },
     putterEditor: {
-      newEyebrow: "Catalogue / New", newTitle: "New record", editEyebrow: "Catalogue / Edit", preview: "Preview",
-      identity: "Identity", localizedTitles: "Localized titles", catalogueState: "Catalogue state",
-      slug: "URL slug", brand: "Brand", model: "Model", releaseYear: "Release year",
+      newEyebrow: "Catalogue / New", newTitle: "New putter", editEyebrow: "Catalogue / Edit", preview: "View public page", previewUnavailable: "Public page unavailable while private",
+      identity: "Putter identity", identityIntro: "Use the maker's exact naming. Keep collector shorthand in the model family or visitor-facing copy.",
+      playingSpecifications: "Head and playing specifications", playingSpecificationsIntro: "Record the measurements and build details a player or serious collector will look for first.",
+      collectorDetails: "Collector details", collectorDetailsIntro: "Document the accompanying pieces, authentication, condition, and internal source record.",
+      localizedContent: "Visitor-facing copy", localizedContentIntro: "Write naturally for each audience. Product names such as GSS, Circle T, Timeless, and TourType should normally remain unchanged.", localeEditorHint: "Title, notes, included items, and search copy",
+      catalogueState: "Availability, price, and visibility", catalogueStateIntro: "Status describes the putter. Publishing controls whether the record appears on the public site.",
+      slug: "Public page address", slugHelp: "The final part of the page URL. Use lowercase words separated by hyphens; change only when necessary.", brand: "Maker", model: "Exact model / configuration", modelFamily: "Model family", modelFamilyHelp: "Useful for grouping related heads, such as Timeless / TourType.", category: "Collection category", releaseYear: "Model year",
       traditionalChinese: "Traditional Chinese", simplifiedChinese: "Simplified Chinese", english: "English",
-      status: "Status", headMaterial: "Head material", headStyle: "Head style", priceMode: "Price mode", priceCents: "Price in cents", currency: "Currency",
-      featured: "Featured", published: "Published", saving: "Saving…", save: "Save record",
+      title: "Listing title", subtitle: "One-line specification summary", overview: "Overview", collectorNotes: "Collector notes", conditionNotes: "Condition notes", provenanceText: "Provenance shown to visitors", includedItems: "Included items", seoTitle: "Search title", seoDescription: "Search description",
+      status: "Availability", headMaterial: "Head material", headStyle: "Head shape", finish: "Finish", neckType: "Neck / hosel", alignmentAid: "Alignment aid", lengthInches: "Length (inches)", loftDegrees: "Loft (degrees)", lieDegrees: "Lie (degrees)", headWeightGrams: "Head weight (grams)", shaft: "Shaft", grip: "Grip", headcover: "Headcover", paintFill: "Paint fill", coaStatus: "Certificate of authenticity", coaHelp: "State whether a COA is included and add its number, for example: Included — A-074011.", serialNumber: "Serial / registry number", conditionScore: "Condition score (0–10)", location: "Current location", provenanceSummary: "Internal source / provenance note",
+      priceMode: "Price display", priceAmount: "Price amount", priceAmountHelp: "Enter the normal amount, for example 35000—not cents.", currency: "Currency code", currencyHelp: "Three-letter code such as USD, HKD, CAD, or GBP.",
+      featured: "Feature in the catalogue", featuredHelp: "Raises this putter in curated collection views after it is published.", published: "Publish to the website", publishedHelp: "Makes the record visible to visitors unless its availability is Private.", saving: "Saving…", save: "Save putter", saveHint: "Save specifications, visitor copy, visibility, and image order together.",
       priceModes: { hidden: "Hidden", amount: "Show amount", on_request: "On request" },
+      examples: { headStyle: "Blade / Newport 2", headMaterial: "GSS / SSS / carbon steel", finish: "Tour satin / black oxide", neckType: "Plumber neck / flow neck", alignmentAid: "Top line / sight dot / naked" },
       photography: {
         legend: "Photography", kicker: "Cloudinary product library", title: "Build the visual record.",
         intro: "Upload up to {max} high-resolution product images. The first image becomes the catalogue cover.",
@@ -109,7 +173,7 @@ const messages = {
         limitError: "A product can have up to {max} images.", fileError: "{name} must be a JPEG, PNG, or WebP image under 12 MB.",
         prepareError: "Could not prepare the upload.", uploadError: "Image upload failed. Please try again.", fileUploadError: "Could not upload {name}.",
       },
-      actions: { title: "Record actions", intro: "Duplicated records start private. Deletion requires the exact slug.", duplicate: "Duplicate", confirmation: "Type {slug}", delete: "Delete" },
+      actions: { title: "Record tools", intro: "Create a complete private copy, or permanently remove this record.", duplicateTitle: "Create a working copy", duplicateIntro: "Copies specifications, translations, and image references into a new private draft. The current record is unchanged.", duplicate: "Duplicate as private draft", deleteTitle: "Permanently delete this putter", deleteIntro: "Deletes the catalogue record and its translations. Images are removed from storage only when no other record uses them.", revealDelete: "Show delete controls", confirmationLabel: "Type the page address to confirm", confirmation: "Type {slug}", delete: "Delete putter permanently" },
       errors: { databaseRequired: "Configure DATABASE_URL before editing catalogue records.", reviewFields: "Review the highlighted fields.", invalidField: "Enter a valid value.", invalidImages: "The image list contains an unapproved path or storage key.", saveFailed: "The record could not be saved. No catalogue changes were applied." },
     } satisfies AdminPutterEditorMessages,
   },
@@ -119,12 +183,12 @@ const messages = {
       languages: { "zh-hant": "繁體中文", "zh-hans": "簡體中文", en: "英文" },
       environments: { production: "正式環境", development: "開發環境", test: "測試環境" },
     },
-    login: { privateAccess: "管理員登入", eyebrow: "推杆典藏 / 後台管理", title: "登入管理後台。", intro: "請輸入管理員密碼以繼續。", password: "密碼", verifying: "驗證中…", enter: "登入後台", invalid: "登入資料不正確。", notConfigured: "管理員登入尚未設定。" },
-    nav: { overview: "總覽", putters: "推杆藏品", inquiries: "洽詢", testimonials: "藏家評語", settings: "設定", signOut: "登出" },
-    dashboard: { eyebrow: "藏家總覽", title: "典藏管理台", newPutter: "新增推杆", published: "已發布藏品", available: "可供洽詢", reserved: "已預留", sold: "已售出", private: "草稿／私人", inquiries: "新洽詢", recent: "最近編輯", viewCatalogue: "查看目錄", empty: "尚無典藏活動。新增第一支推杆以建立典藏目錄。" },
+    login: { privateAccess: "管理員登入", eyebrow: "推桿典藏 / 後台管理", title: "登入管理後台。", intro: "請輸入管理員密碼以繼續。", password: "密碼", verifying: "驗證中…", enter: "登入後台", invalid: "登入資料不正確。", notConfigured: "管理員登入尚未設定。" },
+    nav: { overview: "總覽", putters: "推桿藏品", inquiries: "洽詢", testimonials: "藏家評語", settings: "設定", signOut: "登出" },
+    dashboard: { eyebrow: "藏家總覽", title: "典藏管理台", newPutter: "新增推桿", published: "已發布藏品", available: "可供洽詢", reserved: "已預留", sold: "已售出", private: "草稿／私人", inquiries: "新洽詢", recent: "最近編輯", viewCatalogue: "查看目錄", empty: "尚無典藏活動。新增第一支推桿以建立典藏目錄。" },
     settings: { eyebrow: "全域設定", title: "設定", legend: "品牌與語言", contactLegend: "聯絡渠道", brand: "品牌名稱", logo: "標誌文字", defaultLocale: "網站及管理介面語言", localeHelp: "首頁導向及藏家管理介面會使用此語言，訪客仍可自行切換。", email: "聯絡電郵", location: "所在地", whatsappUrl: "WhatsApp 網址", wechatId: "微信 ID", instagramUrl: "Instagram 網址", xiaohongshuUrl: "小紅書網址", optionalHelp: "選填渠道留空後，聯絡頁面便不會顯示。", save: "儲存設定", saved: "設定已儲存，網站及管理介面已使用所選預設語言。", invalid: "請檢查設定。電郵必須有效，而渠道網址必須以 http:// 或 https:// 開頭。", databaseRequired: "請先設定 DATABASE_URL 才能儲存全域設定；目前只會顯示內建預設值。" },
     statuses: { available: "可供洽詢", reserved: "已預留", sold: "已售出", display_only: "僅供典藏", private: "私人" },
-    putters: { eyebrow: "典藏目錄 / {count} 筆記錄", title: "推杆藏品", newPutter: "新增推杆", empty: "尚未加入推杆。請建立第一筆典藏記錄。" },
+    putters: { eyebrow: "典藏目錄 / {count} 筆記錄", title: "推桿藏品", newPutter: "新增推桿", empty: "尚未加入推桿。請建立第一筆典藏記錄。" },
     inquiries: {
       eyebrow: "往來洽詢 / {count}", title: "洽詢", export: "匯出 CSV",
       databaseRequired: "請先設定 DATABASE_URL 才能查看已儲存的洽詢。", empty: "目前尚無洽詢；新的藏家訊息會顯示於此。",
@@ -138,13 +202,20 @@ const messages = {
       publishImmediately: "立即發布", addStatement: "新增評語", empty: "尚未加入藏家評語。",
     },
     putterEditor: {
-      newEyebrow: "典藏目錄 / 新增", newTitle: "新增藏品", editEyebrow: "典藏目錄 / 編輯", preview: "預覽",
-      identity: "基本資料", localizedTitles: "多語言標題", catalogueState: "典藏狀態",
-      slug: "網址代稱", brand: "品牌", model: "型號", releaseYear: "推出年份",
+      newEyebrow: "典藏目錄 / 新增", newTitle: "新增推桿", editEyebrow: "典藏目錄 / 編輯", preview: "查看公開頁面", previewUnavailable: "私人草稿尚無公開頁面",
+      identity: "推桿識別資料", identityIntro: "依照原廠命名填寫品牌與型號；藏家慣用簡稱可放在系列或訪客文案內。",
+      playingSpecifications: "桿頭與實打規格", playingSpecificationsIntro: "優先記錄球手與資深藏家最關心的尺寸、重量及組裝配置。",
+      collectorDetails: "典藏資料", collectorDetailsIntro: "記錄隨附配件、認證、品相，以及僅供內部查核的來源。",
+      localizedContent: "訪客頁面文案", localizedContentIntro: "三種語言應分別自然撰寫；GSS、Circle T、Timeless、TourType 等正式名稱一般毋須翻譯。", localeEditorHint: "標題、說明、隨附物件與搜尋摘要",
+      catalogueState: "供應狀態、價格與公開設定", catalogueStateIntro: "供應狀態描述推桿本身；公開設定則決定訪客能否在網站看到此記錄。",
+      slug: "公開頁面網址", slugHelp: "頁面網址最後一段。請使用小寫英文與連字號；非必要請勿更改。", brand: "品牌／製作者", model: "完整型號／配置", modelFamily: "型號系列", modelFamilyHelp: "用於歸類相近桿頭，例如 Timeless / TourType。", category: "典藏分類", releaseYear: "型號年份",
       traditionalChinese: "繁體中文", simplifiedChinese: "簡體中文", english: "英文",
-      status: "狀態", headMaterial: "桿頭材質", headStyle: "桿頭類型", priceMode: "價格顯示", priceCents: "價格（分）", currency: "貨幣",
-      featured: "精選藏品", published: "公開發布", saving: "儲存中…", save: "儲存藏品",
+      title: "藏品標題", subtitle: "一行規格摘要", overview: "藏品概述", collectorNotes: "藏家筆記", conditionNotes: "品相說明", provenanceText: "向訪客顯示的來源紀錄", includedItems: "隨附物件", seoTitle: "搜尋結果標題", seoDescription: "搜尋結果摘要",
+      status: "供應狀態", headMaterial: "桿頭材質", headStyle: "桿頭造型", finish: "表面處理", neckType: "桿頸形式", alignmentAid: "瞄準標記", lengthInches: "桿長（吋）", loftDegrees: "傾角（度）", lieDegrees: "Lie 角（度）", headWeightGrams: "桿頭重量（克）", shaft: "桿身", grip: "握把", headcover: "桿頭套", paintFill: "填漆", coaStatus: "原廠認證書（COA）", coaHelp: "請註明是否隨附認證書及編號，例如：隨附 — A-074011。", serialNumber: "序號／登記編號", conditionScore: "品相評分（0–10）", location: "目前所在地", provenanceSummary: "內部來源／查核備註",
+      priceMode: "價格顯示方式", priceAmount: "價格金額", priceAmountHelp: "直接輸入正常金額，例如 35000；毋須換算成分。", currency: "貨幣代碼", currencyHelp: "使用三位英文字母，例如 USD、HKD、CAD 或 GBP。",
+      featured: "列為精選藏品", featuredHelp: "公開後會在精選與典藏排序中優先顯示。", published: "發布至網站", publishedHelp: "發布後訪客可看到此記錄；供應狀態若為「私人」則仍不公開。", saving: "儲存中…", save: "儲存推桿", saveHint: "規格、三語文案、公開設定與圖片次序會一併儲存。",
       priceModes: { hidden: "隱藏價格", amount: "顯示金額", on_request: "洽詢報價" },
+      examples: { headStyle: "Blade / Newport 2", headMaterial: "GSS / SSS / 碳鋼", finish: "Tour Satin / Black Oxide", neckType: "Plumber Neck / Flow Neck", alignmentAid: "頂線 / 瞄準點 / 無標記" },
       photography: {
         legend: "藏品攝影", kicker: "Cloudinary 藏品圖庫", title: "建立完整影像紀錄。",
         intro: "最多可上傳 {max} 張高解析度藏品照片；第一張會作為目錄封面。",
@@ -155,7 +226,7 @@ const messages = {
         limitError: "每件藏品最多可上傳 {max} 張圖片。", fileError: "{name} 必須是小於 12 MB 的 JPEG、PNG 或 WebP 圖片。",
         prepareError: "目前無法準備上傳。", uploadError: "圖片上傳失敗，請再試一次。", fileUploadError: "無法上傳 {name}。",
       },
-      actions: { title: "藏品操作", intro: "複製的藏品會先設為私人；刪除時必須輸入完整網址代稱。", duplicate: "複製", confirmation: "輸入 {slug}", delete: "刪除" },
+      actions: { title: "記錄工具", intro: "建立完整的私人副本，或永久刪除此筆記錄。", duplicateTitle: "建立工作副本", duplicateIntro: "把規格、三語文案與圖片引用複製成新的私人草稿；目前記錄不會改動。", duplicate: "複製為私人草稿", deleteTitle: "永久刪除此支推桿", deleteIntro: "刪除藏品記錄及三語文案。只有在沒有其他記錄使用圖片時，系統才會從圖庫移除檔案。", revealDelete: "顯示刪除選項", confirmationLabel: "輸入公開頁面網址以確認", confirmation: "輸入 {slug}", delete: "永久刪除推桿" },
       errors: { databaseRequired: "請先設定 DATABASE_URL 才能編輯典藏記錄。", reviewFields: "請檢查標示的欄位。", invalidField: "請輸入有效資料。", invalidImages: "圖片清單包含未核准的路徑或儲存識別碼。", saveFailed: "無法儲存記錄，典藏資料未有任何變更。" },
     } satisfies AdminPutterEditorMessages,
   },
@@ -184,13 +255,20 @@ const messages = {
       publishImmediately: "立即发布", addStatement: "新增评价", empty: "尚未添加藏家评价。",
     },
     putterEditor: {
-      newEyebrow: "典藏目录 / 新增", newTitle: "新增藏品", editEyebrow: "典藏目录 / 编辑", preview: "预览",
-      identity: "基本资料", localizedTitles: "多语言标题", catalogueState: "典藏状态",
-      slug: "网址别名", brand: "品牌", model: "型号", releaseYear: "推出年份",
+      newEyebrow: "典藏目录 / 新增", newTitle: "新增推杆", editEyebrow: "典藏目录 / 编辑", preview: "查看公开页面", previewUnavailable: "私人草稿暂无公开页面",
+      identity: "推杆识别资料", identityIntro: "按照原厂命名填写品牌与型号；藏家常用简称可放在系列或访客文案内。",
+      playingSpecifications: "杆头与实打规格", playingSpecificationsIntro: "优先记录球手与资深藏家最关心的尺寸、重量及组装配置。",
+      collectorDetails: "典藏资料", collectorDetailsIntro: "记录随附配件、认证、品相，以及仅供内部核对的来源。",
+      localizedContent: "访客页面文案", localizedContentIntro: "三种语言应分别自然撰写；GSS、Circle T、Timeless、TourType 等正式名称通常无需翻译。", localeEditorHint: "标题、说明、随附物件与搜索摘要",
+      catalogueState: "供应状态、价格与公开设置", catalogueStateIntro: "供应状态描述推杆本身；公开设置决定访客能否在网站看到这条记录。",
+      slug: "公开页面网址", slugHelp: "页面网址的最后一段。请使用小写英文和连字符；非必要请勿更改。", brand: "品牌／制作者", model: "完整型号／配置", modelFamily: "型号系列", modelFamilyHelp: "用于归类相近杆头，例如 Timeless / TourType。", category: "典藏分类", releaseYear: "型号年份",
       traditionalChinese: "繁体中文", simplifiedChinese: "简体中文", english: "英文",
-      status: "状态", headMaterial: "杆头材质", headStyle: "杆头类型", priceMode: "价格显示", priceCents: "价格（分）", currency: "货币",
-      featured: "精选藏品", published: "公开发布", saving: "保存中…", save: "保存藏品",
+      title: "藏品标题", subtitle: "一行规格摘要", overview: "藏品概述", collectorNotes: "藏家笔记", conditionNotes: "品相说明", provenanceText: "向访客显示的来源记录", includedItems: "随附物件", seoTitle: "搜索结果标题", seoDescription: "搜索结果摘要",
+      status: "供应状态", headMaterial: "杆头材质", headStyle: "杆头造型", finish: "表面处理", neckType: "杆颈形式", alignmentAid: "瞄准标记", lengthInches: "杆长（英寸）", loftDegrees: "倾角（度）", lieDegrees: "Lie 角（度）", headWeightGrams: "杆头重量（克）", shaft: "杆身", grip: "握把", headcover: "杆头套", paintFill: "填漆", coaStatus: "原厂认证书（COA）", coaHelp: "请注明是否随附认证书及编号，例如：随附 — A-074011。", serialNumber: "序号／登记编号", conditionScore: "品相评分（0–10）", location: "目前所在地", provenanceSummary: "内部来源／核对备注",
+      priceMode: "价格显示方式", priceAmount: "价格金额", priceAmountHelp: "直接输入正常金额，例如 35000；无需换算成分。", currency: "货币代码", currencyHelp: "使用三位英文字母，例如 USD、HKD、CAD 或 GBP。",
+      featured: "列为精选藏品", featuredHelp: "公开后会在精选与典藏排序中优先显示。", published: "发布到网站", publishedHelp: "发布后访客可以看到这条记录；供应状态若为“私人”则仍不公开。", saving: "保存中…", save: "保存推杆", saveHint: "规格、三语文案、公开设置与图片顺序会一并保存。",
       priceModes: { hidden: "隐藏价格", amount: "显示金额", on_request: "咨询报价" },
+      examples: { headStyle: "Blade / Newport 2", headMaterial: "GSS / SSS / 碳钢", finish: "Tour Satin / Black Oxide", neckType: "Plumber Neck / Flow Neck", alignmentAid: "顶线 / 瞄准点 / 无标记" },
       photography: {
         legend: "藏品摄影", kicker: "Cloudinary 藏品图库", title: "建立完整影像记录。",
         intro: "最多可上传 {max} 张高分辨率藏品照片；第一张会作为目录封面。",
@@ -201,7 +279,7 @@ const messages = {
         limitError: "每件藏品最多可上传 {max} 张图片。", fileError: "{name} 必须是小于 12 MB 的 JPEG、PNG 或 WebP 图片。",
         prepareError: "目前无法准备上传。", uploadError: "图片上传失败，请重试。", fileUploadError: "无法上传 {name}。",
       },
-      actions: { title: "藏品操作", intro: "复制的藏品会先设为私人；删除时必须输入完整网址别名。", duplicate: "复制", confirmation: "输入 {slug}", delete: "删除" },
+      actions: { title: "记录工具", intro: "建立完整的私人副本，或永久删除这条记录。", duplicateTitle: "建立工作副本", duplicateIntro: "将规格、三语文案与图片引用复制成新的私人草稿；当前记录不会改动。", duplicate: "复制为私人草稿", deleteTitle: "永久删除这支推杆", deleteIntro: "删除藏品记录及三语文案。只有在没有其他记录使用图片时，系统才会从图库移除文件。", revealDelete: "显示删除选项", confirmationLabel: "输入公开页面网址以确认", confirmation: "输入 {slug}", delete: "永久删除推杆" },
       errors: { databaseRequired: "请先设置 DATABASE_URL 才能编辑典藏记录。", reviewFields: "请检查标记的字段。", invalidField: "请输入有效内容。", invalidImages: "图片列表包含未获准的路径或存储标识。", saveFailed: "无法保存记录，典藏数据未发生任何更改。" },
     } satisfies AdminPutterEditorMessages,
   },

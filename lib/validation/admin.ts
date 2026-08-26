@@ -47,22 +47,73 @@ const adminImagesSchema = z.string().max(50_000).transform((value, context) => {
   return z.NEVER;
 });
 
+const optionalShortText = (max: number) => z.string().trim().max(max).optional().default("");
+const optionalNumber = (minimum: number, maximum: number) => z.literal("").or(z.coerce.number().min(minimum).max(maximum)).optional().default("");
+const optionalInteger = (minimum: number, maximum: number) => z.literal("").or(z.coerce.number().int().min(minimum).max(maximum)).optional().default("");
+const priceAmountSchema = z.literal("").or(z.string().trim().regex(/^\d{1,9}(?:\.\d{1,2})?$/));
+
 export const putterAdminSchema = z.object({
   id: z.string().uuid().optional(),
   slug: slugSchema,
   brand: z.string().trim().min(1).max(100),
   model: z.string().trim().min(1).max(120),
+  modelFamily: optionalShortText(120),
+  category: optionalShortText(120),
+  releaseYear: optionalInteger(1900, 2100),
+  headStyle: optionalShortText(120),
+  headMaterial: optionalShortText(120),
+  finish: optionalShortText(120),
+  neckType: optionalShortText(120),
+  alignmentAid: optionalShortText(160),
+  lengthInches: optionalNumber(20, 60),
+  loftDegrees: optionalNumber(-10, 20),
+  lieDegrees: optionalNumber(40, 90),
+  headWeightGrams: optionalInteger(100, 1000),
+  shaft: optionalShortText(160),
+  grip: optionalShortText(160),
+  headcover: optionalShortText(160),
+  paintFill: optionalShortText(160),
+  coaStatus: optionalShortText(80),
+  serialNumber: optionalShortText(160),
+  conditionScore: optionalNumber(0, 10),
+  location: optionalShortText(120),
+  provenanceSummary: optionalShortText(5000),
   titleZhHant: z.string().trim().min(1).max(180),
+  subtitleZhHant: optionalShortText(240),
+  overviewZhHant: optionalShortText(6000),
+  collectorNotesZhHant: optionalShortText(6000),
+  conditionNotesZhHant: optionalShortText(6000),
+  provenanceTextZhHant: optionalShortText(6000),
+  includedItemsZhHant: optionalShortText(6000),
+  seoTitleZhHant: optionalShortText(180),
+  seoDescriptionZhHant: optionalShortText(320),
   titleZhHans: z.string().trim().min(1).max(180),
+  subtitleZhHans: optionalShortText(240),
+  overviewZhHans: optionalShortText(6000),
+  collectorNotesZhHans: optionalShortText(6000),
+  conditionNotesZhHans: optionalShortText(6000),
+  provenanceTextZhHans: optionalShortText(6000),
+  includedItemsZhHans: optionalShortText(6000),
+  seoTitleZhHans: optionalShortText(180),
+  seoDescriptionZhHans: optionalShortText(320),
   titleEn: z.string().trim().min(1).max(180),
+  subtitleEn: optionalShortText(240),
+  overviewEn: optionalShortText(6000),
+  collectorNotesEn: optionalShortText(6000),
+  conditionNotesEn: optionalShortText(6000),
+  provenanceTextEn: optionalShortText(6000),
+  includedItemsEn: optionalShortText(6000),
+  seoTitleEn: optionalShortText(180),
+  seoDescriptionEn: optionalShortText(320),
   status: z.enum(["available", "reserved", "sold", "display_only", "private"]),
-  headMaterial: z.string().trim().max(120).optional(),
-  headStyle: z.string().trim().max(120).optional(),
-  releaseYear: z.coerce.number().int().min(1900).max(2100).optional().or(z.literal("")),
   priceMode: z.enum(["hidden", "amount", "on_request"]),
-  priceCents: z.coerce.number().int().nonnegative().optional().or(z.literal("")),
+  priceAmount: priceAmountSchema,
   priceCurrency: z.string().trim().length(3).default("HKD"),
   imagesJson: adminImagesSchema,
   isFeatured: z.boolean().default(false),
   isPublished: z.boolean().default(false),
+}).superRefine((data, context) => {
+  if (data.priceMode === "amount" && data.priceAmount === "") {
+    context.addIssue({ code: "custom", path: ["priceAmount"], message: "Enter an amount when the price is shown." });
+  }
 });

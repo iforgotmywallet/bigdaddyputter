@@ -20,9 +20,7 @@ export async function getAdminPutterEditor(id: string) {
     if (!sample) return null;
     return {
       ...sample,
-      titleZhHant: sample.translations["zh-hant"].title,
-      titleZhHans: sample.translations["zh-hans"].title,
-      titleEn: sample.translations.en.title,
+      translations: sample.translations,
       images: sample.images.map((image) => ({ src: image.src, width: image.width, height: image.height, storageKey: null })),
     };
   }
@@ -33,12 +31,27 @@ export async function getAdminPutterEditor(id: string) {
     db.select().from(putterTranslations).where(eq(putterTranslations.putterId, id)),
     db.select().from(putterImages).where(eq(putterImages.putterId, id)).orderBy(asc(putterImages.sortOrder)),
   ]);
-  const title = (locale: string) => translations.find((translation) => translation.locale === locale)?.title ?? `${record.brand} ${record.model}`;
+  const translationFor = (locale: string) => {
+    const translation = translations.find((item) => item.locale === locale);
+    return {
+      title: translation?.title ?? `${record.brand} ${record.model}`,
+      subtitle: translation?.subtitle ?? "",
+      overview: translation?.overview ?? "",
+      collectorNotes: translation?.collectorNotes ?? "",
+      conditionNotes: translation?.conditionNotes ?? "",
+      provenanceText: translation?.provenanceText ?? "",
+      includedItems: translation?.includedItems ?? "",
+      seoTitle: translation?.seoTitle ?? "",
+      seoDescription: translation?.seoDescription ?? "",
+    };
+  };
   return {
     ...record,
-    titleZhHant: title("zh-hant"),
-    titleZhHans: title("zh-hans"),
-    titleEn: title("en"),
+    translations: {
+      "zh-hant": translationFor("zh-hant"),
+      "zh-hans": translationFor("zh-hans"),
+      en: translationFor("en"),
+    },
     images: images.map((image) => ({ src: image.src, storageKey: image.storageKey, width: image.width, height: image.height })),
   };
 }

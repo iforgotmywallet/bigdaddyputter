@@ -2,7 +2,7 @@
 
 import { compare } from "bcryptjs";
 import { randomUUID } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -38,6 +38,7 @@ export async function logoutAction() { await clearAdminSession(); redirect("/adm
 
 function toObject(formData: FormData) { return { ...Object.fromEntries(formData.entries()), isFeatured: formData.get("isFeatured") === "on", isPublished: formData.get("isPublished") === "on" }; }
 function refreshPutter(id: string, slug: string) { revalidateTag(`putter:${id}`, "max"); revalidateTag("putters", "max"); revalidatePath("/"); revalidatePath("/[locale]/collection", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }
+function emptyToNull<T>(value: T | "") { return value === "" ? null : value; }
 
 export async function savePutterAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   await requireAdmin();
@@ -49,17 +50,52 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
   if (invalidImage) return { status: "error", message: editorMessages.errors.invalidImages };
-  const values = { slug: data.slug, brand: data.brand, model: data.model, status: data.status, headMaterial: data.headMaterial || null, headStyle: data.headStyle || null, releaseYear: data.releaseYear === "" ? null : data.releaseYear, priceMode: data.priceMode, priceCents: data.priceCents === "" ? null : data.priceCents, priceCurrency: data.priceCurrency.toUpperCase(), isFeatured: data.isFeatured, isPublished: data.isPublished, updatedAt: new Date(), publishedAt: data.isPublished ? new Date() : null };
+  const values = {
+    slug: data.slug,
+    brand: data.brand,
+    model: data.model,
+    modelFamily: emptyToNull(data.modelFamily),
+    category: emptyToNull(data.category),
+    releaseYear: emptyToNull(data.releaseYear),
+    status: data.status,
+    headStyle: emptyToNull(data.headStyle),
+    headMaterial: emptyToNull(data.headMaterial),
+    finish: emptyToNull(data.finish),
+    neckType: emptyToNull(data.neckType),
+    alignmentAid: emptyToNull(data.alignmentAid),
+    lengthInches: emptyToNull(data.lengthInches),
+    loftDegrees: emptyToNull(data.loftDegrees),
+    lieDegrees: emptyToNull(data.lieDegrees),
+    headWeightGrams: emptyToNull(data.headWeightGrams),
+    shaft: emptyToNull(data.shaft),
+    grip: emptyToNull(data.grip),
+    headcover: emptyToNull(data.headcover),
+    paintFill: emptyToNull(data.paintFill),
+    coaStatus: emptyToNull(data.coaStatus),
+    serialNumber: emptyToNull(data.serialNumber),
+    conditionScore: emptyToNull(data.conditionScore),
+    location: emptyToNull(data.location),
+    provenanceSummary: emptyToNull(data.provenanceSummary),
+    priceMode: data.priceMode,
+    priceCents: data.priceAmount === "" ? null : Math.round(Number(data.priceAmount) * 100),
+    priceCurrency: data.priceCurrency.toUpperCase(),
+    isFeatured: data.isFeatured,
+    isPublished: data.isPublished,
+    updatedAt: new Date(),
+  };
   const id = data.id ?? randomUUID();
   let previousImages: Array<{ storageKey: string | null }> = [];
   try {
     previousImages = data.id ? await db.select({ storageKey: putterImages.storageKey }).from(putterImages).where(eq(putterImages.putterId, data.id)) : [];
     const putterMutation = data.id
-      ? db.update(putters).set(values).where(eq(putters.id, data.id))
-      : db.insert(putters).values({ id, ...values });
-    const translationZhHant = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hant", title: data.titleZhHant }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleZhHant } });
-    const translationZhHans = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hans", title: data.titleZhHans }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleZhHans } });
-    const translationEn = db.insert(putterTranslations).values({ putterId: id, locale: "en", title: data.titleEn }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: { title: data.titleEn } });
+      ? db.update(putters).set({ ...values, publishedAt: data.isPublished ? sql`coalesce(${putters.publishedAt}, now())` : null }).where(eq(putters.id, data.id))
+      : db.insert(putters).values({ id, ...values, publishedAt: data.isPublished ? new Date() : null });
+    const zhHantValues = { title: data.titleZhHant, subtitle: emptyToNull(data.subtitleZhHant), overview: emptyToNull(data.overviewZhHant), collectorNotes: emptyToNull(data.collectorNotesZhHant), conditionNotes: emptyToNull(data.conditionNotesZhHant), provenanceText: emptyToNull(data.provenanceTextZhHant), includedItems: emptyToNull(data.includedItemsZhHant), seoTitle: emptyToNull(data.seoTitleZhHant), seoDescription: emptyToNull(data.seoDescriptionZhHant) };
+    const zhHansValues = { title: data.titleZhHans, subtitle: emptyToNull(data.subtitleZhHans), overview: emptyToNull(data.overviewZhHans), collectorNotes: emptyToNull(data.collectorNotesZhHans), conditionNotes: emptyToNull(data.conditionNotesZhHans), provenanceText: emptyToNull(data.provenanceTextZhHans), includedItems: emptyToNull(data.includedItemsZhHans), seoTitle: emptyToNull(data.seoTitleZhHans), seoDescription: emptyToNull(data.seoDescriptionZhHans) };
+    const enValues = { title: data.titleEn, subtitle: emptyToNull(data.subtitleEn), overview: emptyToNull(data.overviewEn), collectorNotes: emptyToNull(data.collectorNotesEn), conditionNotes: emptyToNull(data.conditionNotesEn), provenanceText: emptyToNull(data.provenanceTextEn), includedItems: emptyToNull(data.includedItemsEn), seoTitle: emptyToNull(data.seoTitleEn), seoDescription: emptyToNull(data.seoDescriptionEn) };
+    const translationZhHant = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hant", ...zhHantValues }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: zhHantValues });
+    const translationZhHans = db.insert(putterTranslations).values({ putterId: id, locale: "zh-hans", ...zhHansValues }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: zhHansValues });
+    const translationEn = db.insert(putterTranslations).values({ putterId: id, locale: "en", ...enValues }).onConflictDoUpdate({ target: [putterTranslations.putterId, putterTranslations.locale], set: enValues });
     const resetImages = db.delete(putterImages).where(eq(putterImages.putterId, id));
 
     // drizzle/neon-http batches execute as one non-interactive Neon transaction.
@@ -91,10 +127,36 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
 
 export async function duplicatePutterAction(formData: FormData) {
   await requireAdmin(); if (!hasDatabase()) return;
-  const id = String(formData.get("id")); const db = getDb(); const [source] = await db.select().from(putters).where(eq(putters.id, id)).limit(1); if (!source) return;
-  const { id: _id, createdAt: _created, updatedAt: _updated, ...copy } = source; void _id; void _created; void _updated;
-  await db.insert(putters).values({ ...copy, slug: `${source.slug}-copy-${Date.now().toString().slice(-5)}`, status: "private", isPublished: false, publishedAt: null, createdAt: new Date(), updatedAt: new Date() });
+  const id = String(formData.get("id"));
+  const db = getDb();
+  const [source] = await db.select().from(putters).where(eq(putters.id, id)).limit(1);
+  if (!source) return;
+  const [translations, images] = await Promise.all([
+    db.select().from(putterTranslations).where(eq(putterTranslations.putterId, id)),
+    db.select().from(putterImages).where(eq(putterImages.putterId, id)),
+  ]);
+  const newId = randomUUID();
+  const newSlug = `${source.slug}-copy-${newId.slice(0, 8)}`;
+  const { id: _id, createdAt: _created, updatedAt: _updated, ...copy } = source;
+  void _id; void _created; void _updated;
+  const insertPutter = db.insert(putters).values({ ...copy, id: newId, slug: newSlug, status: "private", isFeatured: false, isPublished: false, publishedAt: null, createdAt: new Date(), updatedAt: new Date() });
+  const translationRows = translations.map((translation) => ({
+    putterId: newId, locale: translation.locale, title: translation.title, subtitle: translation.subtitle,
+    overview: translation.overview, collectorNotes: translation.collectorNotes, conditionNotes: translation.conditionNotes,
+    provenanceText: translation.provenanceText, includedItems: translation.includedItems,
+    seoTitle: translation.seoTitle, seoDescription: translation.seoDescription,
+  }));
+  const imageRows = images.map((image) => ({
+    putterId: newId, src: image.src, storageKey: image.storageKey, altZhHant: image.altZhHant,
+    altZhHans: image.altZhHans, altEn: image.altEn, width: image.width, height: image.height,
+    sortOrder: image.sortOrder, isPrimary: image.isPrimary, createdAt: new Date(),
+  }));
+  if (translationRows.length && imageRows.length) await db.batch([insertPutter, db.insert(putterTranslations).values(translationRows), db.insert(putterImages).values(imageRows)]);
+  else if (translationRows.length) await db.batch([insertPutter, db.insert(putterTranslations).values(translationRows)]);
+  else if (imageRows.length) await db.batch([insertPutter, db.insert(putterImages).values(imageRows)]);
+  else await db.batch([insertPutter]);
   revalidatePath("/admin/putters");
+  redirect(`/admin/putters/${newId}?duplicated=1`);
 }
 
 export async function deletePutterAction(formData: FormData) {
