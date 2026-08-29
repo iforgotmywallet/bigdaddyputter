@@ -18,7 +18,7 @@ const copy = (
     conditionNotes: locale === "en" ? "Collector-kept condition with light handling marks noted in the gallery. No restoration has been represented." : locale === "zh-hant" ? "收藏級品相，圖片記錄輕微使用痕跡；未聲稱經過修復。" : "收藏级品相，图片记录轻微使用痕迹；未声称经过修复。",
     provenanceText: locale === "en" ? "Acquired through a known specialist source. Supporting details are available to serious inquiries." : locale === "zh-hant" ? "經專業渠道收藏；如有認真查詢，可進一步了解相關資料。" : "经专业渠道收藏；如有认真咨询，可进一步了解相关资料。",
     includedItems: locale === "en" ? "Putter, fitted grip, and matching headcover as photographed." : locale === "zh-hant" ? "推桿、已安裝握把及照片所示桿頭套。" : "推杆、已安装握把及照片所示杆头套。",
-    seoTitle: `${localized.title} | The Putter Archive`,
+    seoTitle: `${localized.title} | Scotty Golden Bell`,
     seoDescription: localized.overview,
   };
 };

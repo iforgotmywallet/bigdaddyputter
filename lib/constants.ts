@@ -4,8 +4,8 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:30
 export const PAGE_SIZE = 12;
 
 export const defaultSettings: SiteSettings = {
-  brandName: "The Putter Archive",
-  logoText: "TPA / HK",
+  brandName: "Scotty Golden Bell",
+  logoText: "Scotty Golden Bell",
   defaultLocale: "zh-hant",
   announcementEnabled: true,
   announcement: {

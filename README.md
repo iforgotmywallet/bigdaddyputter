@@ -1,4 +1,4 @@
-# The Putter Archive
+# Scotty Golden Bell
 
 A multilingual, collector-first putter catalogue built with Next.js App Router, React Server Components, TypeScript, Tailwind CSS, Neon Postgres, and Drizzle ORM. Traditional Chinese is the default; Simplified Chinese and English are supported at equivalent URLs.
 

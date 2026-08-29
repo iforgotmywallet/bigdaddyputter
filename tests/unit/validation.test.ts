@@ -28,8 +28,8 @@ describe("customer account validation", () => {
 
 describe("admin site settings validation", () => {
   const valid = {
-    brandName: "The Putter Archive",
-    logoText: "TPA / HK",
+    brandName: "Scotty Golden Bell",
+    logoText: "Scotty Golden Bell",
     defaultLocale: "zh-hant",
     contactEmail: "collector@example.com",
     location: "Hong Kong",

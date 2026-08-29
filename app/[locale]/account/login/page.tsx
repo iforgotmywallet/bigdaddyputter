@@ -21,7 +21,7 @@ export default async function CustomerLoginPage({ params, searchParams }: { para
   const callbackURL = requested?.startsWith(`/${locale}/`) ? requested : `/${locale}/account`;
   if (session) redirect(callbackURL);
   return <section className="customer-auth-page">
-    <div className="customer-auth-story"><p className="eyebrow">{m.account.privateList}</p><p>{m.account.authQuote}</p><span>TPA / MEMBER 001</span></div>
+    <div className="customer-auth-story"><p className="eyebrow">{m.account.privateList}</p><p>{m.account.authQuote}</p><span>SCOTTY GOLDEN BELL / MEMBER 001</span></div>
     <div className="customer-auth-panel"><div><p className="eyebrow">{m.account.memberAccess}</p><h1>{m.account.loginTitle}</h1><p>{m.account.loginIntro}</p><CustomerAuthForm mode="login" locale={locale} labels={{ ...m.account, passwordHint: m.ui.passwordHint, genericError: m.ui.genericError }} callbackURL={callbackURL} configured={isCustomerAuthConfigured()} /></div></div>
   </section>;
 }

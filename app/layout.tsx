@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "The Putter Archive", template: "%s | The Putter Archive" },
+  title: { default: "Scotty Golden Bell", template: "%s | Scotty Golden Bell" },
   description: "A private archive of rare and collectible putters in Hong Kong.",
   robots: { index: true, follow: true },
 };
