@@ -19,6 +19,8 @@ interface AuthLabels {
   createAccount: string;
   useExisting: string;
   configuration: string;
+  passwordHint: string;
+  genericError: string;
 }
 
 export function CustomerAuthForm({
@@ -50,7 +52,7 @@ export function CustomerAuthForm({
       ? await customerAuthClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password })
       : await customerAuthClient.signIn.email({ email, password });
     if (result.error) {
-      setError(result.error.message ?? "Unable to continue. Please try again.");
+      setError(result.error.message ?? labels.genericError);
       setPending(false);
       return;
     }
@@ -62,7 +64,7 @@ export function CustomerAuthForm({
     {mode === "signup" ? <label><span>{labels.name}</span><input name="name" type="text" autoComplete="name" minLength={2} maxLength={80} required autoFocus /></label> : null}
     <label><span>{labels.email}</span><input name="email" type="email" autoComplete="email" required autoFocus={mode === "login"} /></label>
     <label><span>{labels.password}</span><input name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={10} maxLength={128} required /></label>
-    {mode === "signup" ? <p className="auth-hint">Use at least 10 characters.</p> : null}
+    {mode === "signup" ? <p className="auth-hint">{labels.passwordHint}</p> : null}
     {error ? <p className="auth-error" role="alert">{error}</p> : null}
     <button className="button button-dark" type="submit" disabled={pending}>{pending ? (mode === "login" ? labels.loggingIn : labels.signingUp) : (mode === "login" ? labels.login : labels.signup)} <span>↗</span></button>
     <p className="auth-switch">{mode === "login" ? labels.newHere : labels.alreadyMember} <Link href={`/${locale}/account/${mode === "login" ? "signup" : "login"}?next=${encodeURIComponent(callbackURL)}`}>{mode === "login" ? labels.createAccount : labels.useExisting}</Link></p>

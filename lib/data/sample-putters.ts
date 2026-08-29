@@ -9,15 +9,15 @@ const copy = (
   const localized = locale === "en"
     ? { title, subtitle, overview }
     : locale === "zh-hant"
-      ? { title: `${title} 典藏`, subtitle: `${subtitle} · 私人珍藏`, overview: `此藏品以其${overview}而入藏。頁面資料為開發示例，正式發布前應由收藏家核實。` }
-      : { title: `${title} 典藏`, subtitle: `${subtitle} · 私人珍藏`, overview: `此藏品以其${overview}而入藏。页面资料为开发示例，正式发布前应由收藏家核实。` };
+      ? { title, subtitle: `${subtitle} · 私人收藏`, overview: `這支推桿因${overview}而納入收藏。頁面資料為開發示例，正式發布前應由收藏家核實。` }
+      : { title, subtitle: `${subtitle} · 私人收藏`, overview: `这支推杆因${overview}而纳入收藏。页面资料为开发示例，正式发布前应由收藏家核实。` };
 
   return {
     ...localized,
-    collectorNotes: locale === "en" ? "The proportions feel deliberate from every angle, with small workshop choices that reward close inspection." : locale === "zh-hant" ? "各角度的比例均經仔細推敲，工房細節值得近距離觀察。" : "各角度的比例均经仔细推敲，工房细节值得近距离观察。",
+    collectorNotes: locale === "en" ? "The proportions feel deliberate from every angle, with small workshop choices that reward close inspection." : locale === "zh-hant" ? "各角度的比例均經仔細推敲，工坊細節值得近距離觀察。" : "各角度的比例均经仔细推敲，工坊细节值得近距离观察。",
     conditionNotes: locale === "en" ? "Collector-kept condition with light handling marks noted in the gallery. No restoration has been represented." : locale === "zh-hant" ? "收藏級品相，圖片記錄輕微使用痕跡；未聲稱經過修復。" : "收藏级品相，图片记录轻微使用痕迹；未声称经过修复。",
-    provenanceText: locale === "en" ? "Acquired through a known specialist source. Supporting details are available to serious inquiries." : locale === "zh-hant" ? "經已知專門渠道入藏，認真洽詢可進一步了解相關資料。" : "经已知专门渠道入藏，认真咨询可进一步了解相关资料。",
-    includedItems: locale === "en" ? "Putter, fitted grip, and matching headcover as photographed." : locale === "zh-hant" ? "推杆、已安裝握把及圖片所示杆套。" : "推杆、已安装握把及图片所示杆套。",
+    provenanceText: locale === "en" ? "Acquired through a known specialist source. Supporting details are available to serious inquiries." : locale === "zh-hant" ? "經專業渠道收藏；如有認真查詢，可進一步了解相關資料。" : "经专业渠道收藏；如有认真咨询，可进一步了解相关资料。",
+    includedItems: locale === "en" ? "Putter, fitted grip, and matching headcover as photographed." : locale === "zh-hant" ? "推桿、已安裝握把及照片所示桿頭套。" : "推杆、已安装握把及照片所示杆头套。",
     seoTitle: `${localized.title} | The Putter Archive`,
     seoDescription: localized.overview,
   };
@@ -27,8 +27,8 @@ const gallery = (slug: string, title: string) => Array.from({ length: 6 }, (_, i
   id: `${slug}-image-${index + 1}`,
   src: `https://picsum.photos/seed/${slug}-${index + 1}/1600/1200`,
   alt: {
-    "zh-hant": `${title} 藏品照片 ${index + 1}`,
-    "zh-hans": `${title} 藏品照片 ${index + 1}`,
+    "zh-hant": `${title} 實物照片 ${index + 1}`,
+    "zh-hans": `${title} 实物照片 ${index + 1}`,
     en: `${title}, collection view ${index + 1}`,
   },
   width: 1600,

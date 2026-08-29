@@ -17,6 +17,21 @@ describe("availability labels", () => {
   });
 });
 
+describe("collector-facing Chinese terminology", () => {
+  it("uses an explicit not-for-sale status in every locale", () => {
+    expect(getMessages("zh-hant").status.display_only).toBe("私人珍藏・非賣品");
+    expect(getMessages("zh-hans").status.display_only).toBe("私人收藏・非卖品");
+    expect(getMessages("en").status.display_only).toBe("Private Collection · Not for Sale");
+  });
+
+  it("does not use retired literal translations", () => {
+    const messages = JSON.stringify([getMessages("zh-hant"), getMessages("zh-hans")]);
+    for (const retired of ["僅供典藏", "仅供典藏", "工房", "隨附物件", "随附物件", "私人選藏", "私人选藏"]) {
+      expect(messages).not.toContain(retired);
+    }
+  });
+});
+
 describe("admin storefront warning", () => {
   it.each(["zh-hant", "zh-hans", "en"] as const)("defines the admin-session controls in %s", (locale) => {
     const messages = getMessages(locale).adminSession;

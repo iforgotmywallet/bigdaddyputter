@@ -3,7 +3,10 @@ import { InquiryForm } from "@/components/contact/inquiry-form";
 import { getSiteSettings } from "@/db/queries/settings";
 import { getMessages, requireLocale } from "@/lib/i18n";
 
-export const metadata: Metadata = { title: "Contact", robots: { index: true, follow: true } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const m = getMessages(requireLocale((await params).locale));
+  return { title: m.contact.title, description: m.contact.intro, robots: { index: true, follow: true } };
+}
 export default async function Contact({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
   const m = getMessages(locale);

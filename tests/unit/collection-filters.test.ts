@@ -29,7 +29,7 @@ const labels = {
     available: "Available",
     reserved: "Reserved",
     sold: "Sold",
-    display_only: "Collection only",
+    display_only: "Private collection · Not for sale",
   },
 };
 
@@ -44,6 +44,8 @@ describe("collection filter disclosure", () => {
     }));
 
     expect(html).toContain("filters-mobile-summary");
+    expect(html).toContain('data-open="false"');
+    expect(html).toContain('aria-expanded="false"');
     expect(html).toContain("3 items");
     expect(html).toContain('<b aria-label="1">1</b>');
     expect(html).toContain('<option value="">All</option>');

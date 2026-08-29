@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import type { Locale, PutterImage } from "@/lib/types";
 
-export function ProductGallery({ images, locale, label, counterWord }: { images: PutterImage[]; locale: Locale; label: string; counterWord: string }) {
+export function ProductGallery({ images, locale, label, counterWord, controls }: { images: PutterImage[]; locale: Locale; label: string; counterWord: string; controls: { close: string; previous: string; next: string } }) {
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const move = useCallback((step: number) => setActive((current) => (current + step + images.length) % images.length), [images.length]);
@@ -27,8 +27,8 @@ export function ProductGallery({ images, locale, label, counterWord }: { images:
       <div className="gallery-thumbs">
         {images.map((image, index) => <button key={image.id} className={active === index ? "active" : ""} type="button" aria-label={`${index + 1} ${counterWord} ${images.length}`} aria-pressed={active === index} onClick={() => setActive(index)}><Image src={image.src} alt="" width={200} height={150} sizes="100px" /></button>)}
       </div>
-      <div className="gallery-mobile-controls"><button type="button" onClick={() => move(-1)}>←</button><span>{active + 1} / {images.length}</span><button type="button" onClick={() => move(1)}>→</button></div>
-      {lightbox ? <div className="lightbox" role="dialog" aria-modal="true" aria-label={label}><button className="lightbox-close" type="button" onClick={() => setLightbox(false)} aria-label="Close">×</button><button type="button" onClick={() => move(-1)} aria-label="Previous image">←</button><Image src={current.src} alt={current.alt[locale]} width={current.width} height={current.height} sizes="90vw" priority /><button type="button" onClick={() => move(1)} aria-label="Next image">→</button><span>{active + 1} / {images.length}</span></div> : null}
+      <div className="gallery-mobile-controls"><button type="button" onClick={() => move(-1)} aria-label={controls.previous}>←</button><span>{active + 1} / {images.length}</span><button type="button" onClick={() => move(1)} aria-label={controls.next}>→</button></div>
+      {lightbox ? <div className="lightbox" role="dialog" aria-modal="true" aria-label={label}><button className="lightbox-close" type="button" onClick={() => setLightbox(false)} aria-label={controls.close}>×</button><button type="button" onClick={() => move(-1)} aria-label={controls.previous}>←</button><Image src={current.src} alt={current.alt[locale]} width={current.width} height={current.height} sizes="90vw" priority /><button type="button" onClick={() => move(1)} aria-label={controls.next}>→</button><span>{active + 1} / {images.length}</span></div> : null}
     </div>
   );
 }

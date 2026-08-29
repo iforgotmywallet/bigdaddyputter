@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CustomerProfileForm } from "@/components/account/profile-form";
 import { ProductGrid } from "@/components/collection/product-grid";
@@ -7,7 +8,10 @@ import { getCustomerSession } from "@/lib/customer-session";
 import { getMessages, requireLocale } from "@/lib/i18n";
 import { signOutCustomerAction } from "@/app/[locale]/account/actions";
 
-export const metadata = { title: "Your profile", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const m = getMessages(requireLocale((await params).locale));
+  return { title: m.account.memberProfile, description: m.account.settingsIntro, robots: { index: false, follow: false } };
+}
 export const dynamic = "force-dynamic";
 
 export default async function CustomerAccountPage({ params }: { params: Promise<{ locale: string }> }) {

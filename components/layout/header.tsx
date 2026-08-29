@@ -14,11 +14,12 @@ interface HeaderProps {
   logoText: string;
   announcement?: string;
   labels: { collection: string; newArrivals: string; available: string; archive: string; about: string; contact: string; menu: string; close: string; profile: string; signIn: string };
+  utilityLabels: { homeLabel: string; primaryNavigation: string; mobileNavigation: string; languageSelector: string };
   adminSessionLabels: { badge: string; warning: string; openAdmin: string; logout: string };
   customerAuthEnabled: boolean;
 }
 
-export function Header({ locale, logoText, announcement, labels, adminSessionLabels, customerAuthEnabled }: HeaderProps) {
+export function Header({ locale, logoText, announcement, labels, utilityLabels, adminSessionLabels, customerAuthEnabled }: HeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [solid, setSolid] = useState(false);
@@ -73,13 +74,13 @@ export function Header({ locale, logoText, announcement, labels, adminSessionLab
       </div> : null}
       {announcement ? <div className="announcement">{announcement}</div> : null}
       <div className="header-row shell">
-        <Link className="wordmark" href={`/${locale}`} aria-label="The Putter Archive home">{logoText}</Link>
-        <nav className="desktop-nav" aria-label="Primary navigation">
+        <Link className="wordmark" href={`/${locale}`} aria-label={utilityLabels.homeLabel}>{logoText}</Link>
+        <nav className="desktop-nav" aria-label={utilityLabels.primaryNavigation}>
           {nav.map(([href, label]) => <Link key={href} className={pathname === `/${locale}${href}` ? "active" : ""} href={`/${locale}${href}`}>{label}</Link>)}
         </nav>
         <div className="header-actions">
           {adminSessionActive ? <Link className="account-link admin-account-link" href="/admin"><span className="account-dot" aria-hidden="true" />{adminSessionLabels.openAdmin}</Link> : customerAuthEnabled ? <AccountNavigation locale={locale} profileLabel={labels.profile} signInLabel={labels.signIn} /> : <Link className="account-link" href={`/${locale}/account/login`}><span className="account-dot" aria-hidden="true" />{labels.signIn}</Link>}
-          <div className="locale-switcher" aria-label="Language selector">
+          <div className="locale-switcher" aria-label={utilityLabels.languageSelector}>
             {locales.map((item, index) => <span key={item}>{index ? <span aria-hidden="true"> / </span> : null}<Link aria-current={locale === item ? "page" : undefined} href={localeHref(item)}>{localeLabels[item]}</Link></span>)}
           </div>
           <button className="menu-toggle" type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((value) => !value)}>
@@ -88,12 +89,12 @@ export function Header({ locale, logoText, announcement, labels, adminSessionLab
         </div>
       </div>
       <div id="mobile-menu" className={`mobile-menu ${open ? "is-open" : ""}`} aria-hidden={!open}>
-        <nav aria-label="Mobile navigation">
+        <nav aria-label={utilityLabels.mobileNavigation}>
           {nav.map(([href, label], index) => <Link key={href} href={`/${locale}${href}`} onClick={() => setOpen(false)}><span>0{index + 1}</span>{label}</Link>)}
           <Link href={adminSessionActive ? "/admin" : `/${locale}/account`} onClick={() => setOpen(false)}><span>07</span>{adminSessionActive ? adminSessionLabels.openAdmin : labels.profile}</Link>
         </nav>
         <div className="mobile-menu-footer">
-          <div className="mobile-locale-switcher" aria-label="Language selector">
+          <div className="mobile-locale-switcher" aria-label={utilityLabels.languageSelector}>
             {locales.map((item) => <Link key={item} aria-current={locale === item ? "page" : undefined} href={localeHref(item)} onClick={() => setOpen(false)}>{localeLabels[item]}</Link>)}
           </div>
           <Link className="button button-light" href={`/${locale}/contact`} onClick={() => setOpen(false)}>{labels.contact}</Link>
