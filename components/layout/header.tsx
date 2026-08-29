@@ -92,7 +92,12 @@ export function Header({ locale, logoText, announcement, labels, adminSessionLab
           {nav.map(([href, label], index) => <Link key={href} href={`/${locale}${href}`} onClick={() => setOpen(false)}><span>0{index + 1}</span>{label}</Link>)}
           <Link href={adminSessionActive ? "/admin" : `/${locale}/account`} onClick={() => setOpen(false)}><span>07</span>{adminSessionActive ? adminSessionLabels.openAdmin : labels.profile}</Link>
         </nav>
-        <Link className="button button-light" href={`/${locale}/contact`} onClick={() => setOpen(false)}>{labels.contact}</Link>
+        <div className="mobile-menu-footer">
+          <div className="mobile-locale-switcher" aria-label="Language selector">
+            {locales.map((item) => <Link key={item} aria-current={locale === item ? "page" : undefined} href={localeHref(item)} onClick={() => setOpen(false)}>{localeLabels[item]}</Link>)}
+          </div>
+          <Link className="button button-light" href={`/${locale}/contact`} onClick={() => setOpen(false)}>{labels.contact}</Link>
+        </div>
       </div>
     </header>
   );

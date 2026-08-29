@@ -9,10 +9,11 @@ export function ProductCard({ putter, locale, statusLabel, priceOnRequest, prior
   const primary = putter.images.find((image) => image.isPrimary) ?? putter.images[0];
   const alternate = putter.images[1];
   const price = formatPrice(putter.priceMode, putter.priceCents, putter.priceCurrency, locale);
+  const metadata = [putter.headMaterial, putter.releaseYear].filter(Boolean).join(" · ");
   return (
     <article className="product-card">
       <Link className="product-image-wrap" href={`/${locale}/collection/${putter.slug}`} aria-label={translation.title}>
-        {primary ? <Image className="product-image primary" src={primary.src} alt={primary.alt[locale]} width={primary.width} height={primary.height} sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" priority={priority} /> : <div className="image-placeholder" />}
+        {primary ? <Image className="product-image primary" src={primary.src} alt={primary.alt[locale]} width={primary.width} height={primary.height} sizes="(max-width: 520px) 100vw, (max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" priority={priority} /> : <div className="image-placeholder" />}
         {alternate ? <Image className="product-image alternate" src={alternate.src} alt="" width={alternate.width} height={alternate.height} sizes="(max-width: 1100px) 33vw, 25vw" /> : null}
         <StatusBadge status={putter.status} label={statusLabel} />
         <span className="card-index" aria-hidden="true">{String(putter.displayOrder + 1).padStart(2, "0")}</span>
@@ -20,7 +21,7 @@ export function ProductCard({ putter, locale, statusLabel, priceOnRequest, prior
       <div className="product-card-copy">
         <p className="card-brand">{putter.brand}</p>
         <h3><Link href={`/${locale}/collection/${putter.slug}`}>{translation.title}</Link></h3>
-        <p>{putter.headMaterial} · {putter.releaseYear}</p>
+        {metadata ? <p>{metadata}</p> : null}
         {price ? <p className="card-price">{price === "on_request" ? priceOnRequest : price}</p> : null}
       </div>
     </article>
