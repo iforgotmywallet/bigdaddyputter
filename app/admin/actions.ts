@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 import { getDb, hasDatabase } from "@/db/client";
 import { inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
 import { clearAdminSession, createAdminSession, requireAdmin } from "@/lib/auth/session";
+import { publicAdminLogoutDestination } from "@/lib/auth/admin-access";
 import { adminLoginSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { getAdminMessages } from "@/lib/admin-i18n";
 import { deleteUnreferencedCloudinaryImages } from "@/lib/images/cloudinary-cleanup";
@@ -35,6 +36,13 @@ export async function loginAction(_previous: AdminActionState, formData: FormDat
 }
 
 export async function logoutAction() { await clearAdminSession(); redirect("/admin/login"); }
+
+export async function logoutAdminFromPublicAction(formData: FormData) {
+  const locale = adminLocaleFrom(formData);
+  const destination = publicAdminLogoutDestination(locale, String(formData.get("destination") ?? ""));
+  await clearAdminSession();
+  redirect(destination);
+}
 
 function toObject(formData: FormData) { return { ...Object.fromEntries(formData.entries()), isFeatured: formData.get("isFeatured") === "on", isPublished: formData.get("isPublished") === "on" }; }
 function refreshPutter(id: string, slug: string) { revalidateTag(`putter:${id}`, "max"); revalidateTag("putters", "max"); revalidatePath("/"); revalidatePath("/[locale]/collection", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }

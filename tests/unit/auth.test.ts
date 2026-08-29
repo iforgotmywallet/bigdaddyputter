@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSessionToken, verifySessionToken } from "@/lib/auth/token";
+import { isCustomerCredentialRoute, publicAdminLogoutDestination } from "@/lib/auth/admin-access";
 import { adminContactMethodLabel, adminInquiryStatusLabel, adminLocaleLabel, adminStatusLabel, getAdminMessages } from "@/lib/admin-i18n";
 
 function messagePaths(value: unknown, prefix = ""): string[] {
@@ -12,6 +13,28 @@ describe("admin session validation", () => {
   it("accepts a signed owner token", async () => expect(await verifySessionToken(await createSessionToken(secret), secret)).toBe(true));
   it("rejects tampered or foreign tokens", async () => expect(await verifySessionToken(`${await createSessionToken(secret)}x`, secret)).toBe(false));
   it("requires a strong signing secret", async () => expect(() => createSessionToken("short")).toThrow());
+});
+
+describe("admin and customer session separation", () => {
+  it.each([
+    "/api/auth/sign-in/email",
+    "/api/auth/sign-up/email",
+  ])("recognizes customer credential endpoint %s", (pathname) => {
+    expect(isCustomerCredentialRoute(pathname)).toBe(true);
+  });
+
+  it.each([
+    "/api/auth/sign-out",
+    "/api/auth/get-session",
+  ])("does not block non-credential endpoint %s", (pathname) => {
+    expect(isCustomerCredentialRoute(pathname)).toBe(false);
+  });
+
+  it("allows only known same-locale destinations after admin logout", () => {
+    expect(publicAdminLogoutDestination("zh-hant", "/zh-hant/account/login")).toBe("/zh-hant/account/login");
+    expect(publicAdminLogoutDestination("zh-hant", "https://example.com")).toBe("/zh-hant");
+    expect(publicAdminLogoutDestination("zh-hant", "/en/account/signup")).toBe("/zh-hant");
+  });
 });
 
 describe("unified admin locale", () => {

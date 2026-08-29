@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { CustomerAuthForm } from "@/components/account/auth-form";
+import { AdminAuthBlock } from "@/components/account/admin-auth-block";
+import { getAdminSession } from "@/lib/auth/session";
 import { getCustomerSession, isCustomerAuthConfigured } from "@/lib/customer-session";
 import { getMessages, requireLocale } from "@/lib/i18n";
 
@@ -8,6 +10,8 @@ export const metadata = { title: "Customer sign in", robots: { index: false, fol
 export default async function CustomerLoginPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ next?: string }> }) {
   const locale = requireLocale((await params).locale);
   const m = getMessages(locale);
+  const adminSession = await getAdminSession();
+  if (adminSession) return <AdminAuthBlock locale={locale} mode="login" labels={m.adminSession} />;
   const session = await getCustomerSession();
   const requested = (await searchParams).next;
   const callbackURL = requested?.startsWith(`/${locale}/`) ? requested : `/${locale}/account`;
