@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
-import { SITE_URL } from "@/lib/constants";
+import { BRAND_NAME, SITE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Scotty Golden Bell", template: "%s | Scotty Golden Bell" },
+  title: { default: BRAND_NAME, template: `%s | ${BRAND_NAME}` },
   description: "A private archive of rare and collectible putters in Hong Kong.",
   robots: { index: true, follow: true },
 };

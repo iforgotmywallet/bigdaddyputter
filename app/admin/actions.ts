@@ -16,6 +16,7 @@ import { deleteUnreferencedCloudinaryImages } from "@/lib/images/cloudinary-clea
 import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/paths";
 import type { Locale } from "@/lib/types";
 import { LOCALE_PREFERENCE_COOKIE } from "@/lib/locale-preference";
+import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/constants";
 
 export interface AdminActionState { status: "idle" | "error" | "success"; message: string; errors?: Record<string, string>; }
 
@@ -203,6 +204,8 @@ export async function saveSettingsAction(formData: FormData) {
   const result = siteSettingsAdminSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!result.success) redirect("/admin/settings?error=1");
   const values = {
+    brandName: BRAND_NAME,
+    logoText: BRAND_SHORT_NAME,
     ...result.data,
     whatsappUrl: result.data.whatsappUrl || null,
     wechatId: result.data.wechatId || null,

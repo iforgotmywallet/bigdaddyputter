@@ -3,9 +3,10 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
+import { BRAND_NAME } from "@/lib/constants";
 
 export const customerAuth = betterAuth({
-  appName: "Scotty Golden Bell",
+  appName: BRAND_NAME,
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET ?? "development-only-customer-auth-secret-change-me",
   database: drizzleAdapter(getDb(), {

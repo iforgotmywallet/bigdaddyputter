@@ -2,10 +2,12 @@ import type { SiteSettings } from "@/lib/types";
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const PAGE_SIZE = 12;
+export const BRAND_NAME = "ScottyGoldenBell";
+export const BRAND_SHORT_NAME = "SGB";
 
 export const defaultSettings: SiteSettings = {
-  brandName: "Scotty Golden Bell",
-  logoText: "Scotty Golden Bell",
+  brandName: BRAND_NAME,
+  logoText: BRAND_SHORT_NAME,
   defaultLocale: "zh-hant",
   announcementEnabled: true,
   announcement: {

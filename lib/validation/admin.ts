@@ -14,8 +14,6 @@ const optionalHttpUrlSchema = z.string().trim().max(500).refine((value) => {
 });
 
 export const siteSettingsAdminSchema = z.object({
-  brandName: z.string().trim().min(1).max(120),
-  logoText: z.string().trim().min(1).max(80),
   defaultLocale: z.enum(["zh-hant", "zh-hans", "en"]),
   contactEmail: z.string().trim().email().max(180),
   location: z.string().trim().max(120),

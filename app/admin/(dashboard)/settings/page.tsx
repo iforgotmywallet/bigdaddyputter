@@ -3,6 +3,7 @@ import { getSiteSettings } from "@/db/queries/settings";
 import { hasDatabase } from "@/db/client";
 import { adminLocaleLabel } from "@/lib/admin-i18n";
 import { getAdminLanguage } from "@/lib/admin-language";
+import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/constants";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   const settings = await getSiteSettings();
@@ -19,8 +20,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     {!databaseReady ? <p className="admin-alert error">{m.databaseRequired}</p> : null}
     <form className="admin-form" action={saveSettingsAction}>
       <fieldset disabled={!databaseReady}><legend>{m.legend}</legend><div className="admin-form-grid">
-        <label><span>{m.brand}</span><input name="brandName" defaultValue={settings.brandName} required /></label>
-        <label><span>{m.logo}</span><input name="logoText" defaultValue={settings.logoText} required /></label>
+        <label><span>{m.brand}</span><input value={BRAND_NAME} readOnly /></label>
+        <label><span>{m.logo}</span><input value={BRAND_SHORT_NAME} readOnly /></label>
         <label><span>{m.defaultLocale}</span><select name="defaultLocale" defaultValue={settings.defaultLocale}><option value="zh-hant">{adminLocaleLabel(locale, "zh-hant")}</option><option value="zh-hans">{adminLocaleLabel(locale, "zh-hans")}</option><option value="en">{adminLocaleLabel(locale, "en")}</option></select><small className="admin-field-help">{m.localeHelp}</small></label>
       </div></fieldset>
       <fieldset disabled={!databaseReady}><legend>{m.contactLegend}</legend><div className="admin-form-grid">
