@@ -1,1 +1,1 @@
-export function GET() { return Response.json({ ok: true, service: "putter-archive", timestamp: new Date().toISOString() }); }
+export function GET() { return Response.json({ ok: true, service: "ScottyGoldenBell", timestamp: new Date().toISOString() }); }

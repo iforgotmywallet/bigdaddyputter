@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { deletePutterAction, duplicatePutterAction } from "@/app/admin/actions";
 import { PutterForm } from "@/components/admin/putter-form";
 import { getAdminPutterEditor } from "@/db/queries/admin";
+import { getCatalogCategories, getDefaultCatalogCategory } from "@/db/queries/categories";
 import { getAdminLanguage } from "@/lib/admin-language";
 
 export default async function EditPutterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [record, language] = await Promise.all([getAdminPutterEditor(id), getAdminLanguage()]);
+  const [record, language, categories, defaultCategory] = await Promise.all([getAdminPutterEditor(id), getAdminLanguage(), getCatalogCategories(), getDefaultCatalogCategory()]);
   if (!record) notFound();
   const { locale, messages } = language;
   const labels = messages.putterEditor;
@@ -19,7 +20,7 @@ export default async function EditPutterPage({ params }: { params: Promise<{ id:
         ? <Link className="admin-secondary" href={`/${locale}/collection/${record.slug}`} target="_blank">{labels.preview} ↗</Link>
         : <span className="admin-secondary admin-secondary-disabled" aria-disabled="true">{labels.previewUnavailable}</span>}
     </header>
-    <PutterForm data={record} labels={labels} locale={locale} statusLabels={messages.statuses} />
+    <PutterForm data={record} labels={labels} locale={locale} statusLabels={messages.statuses} categories={categories} defaultCategoryId={defaultCategory.id} />
     <section className="admin-record-tools">
       <header><p className="eyebrow">{labels.actions.title}</p><h2>{labels.actions.intro}</h2></header>
       <div className="admin-tool-grid">

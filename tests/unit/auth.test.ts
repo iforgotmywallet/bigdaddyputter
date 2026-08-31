@@ -42,7 +42,7 @@ describe("unified admin locale", () => {
   it("renders Simplified Chinese status labels", () => expect(adminStatusLabel("zh-hans", "available")).toBe("可供购买"));
   it("localizes the Simplified Chinese putter editor", () => {
     const editor = getAdminMessages("zh-hans").putterEditor;
-    expect(editor.newTitle).toBe("新增推杆");
+    expect(editor.newTitle).toBe("新增藏品");
     expect(editor.slug).toBe("公开页面网址");
     expect(editor.priceAmountHelp).toContain("无需换算成分");
     expect(editor.photography.chooseFiles).toBe("选择文件");
@@ -51,7 +51,8 @@ describe("unified admin locale", () => {
   it("localizes every Simplified Chinese admin tab", () => {
     const messages = getAdminMessages("zh-hans");
     expect(messages.dashboard.title).toBe("收藏管理台");
-    expect(messages.putters.title).toBe("推杆管理");
+    expect(messages.putters.title).toBe("藏品管理");
+    expect(messages.categories.title).toBe("分类管理");
     expect(messages.inquiries.title).toBe("客户咨询");
     expect(messages.testimonials.title).toBe("藏家评价");
     expect(messages.settings.title).toBe("设置");

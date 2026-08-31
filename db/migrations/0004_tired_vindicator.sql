@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "catalog_categories_one_default_idx" ON "catalog_categories" USING btree ("is_default") WHERE "catalog_categories"."is_default" = true;

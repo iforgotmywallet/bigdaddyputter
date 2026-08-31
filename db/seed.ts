@@ -1,14 +1,29 @@
 import { getDb } from "@/db/client";
-import { inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
-import { defaultSettings } from "@/lib/constants";
+import { catalogCategories, inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
+import { DEFAULT_CATALOG_CATEGORIES, defaultSettings } from "@/lib/constants";
 import { samplePutters } from "@/lib/data/sample-putters";
 
 async function seed() {
   const db = getDb();
+  for (const category of DEFAULT_CATALOG_CATEGORIES) {
+    await db.insert(catalogCategories).values({
+      id: category.id,
+      slug: category.slug,
+      nameZhHant: category.name["zh-hant"],
+      nameZhHans: category.name["zh-hans"],
+      nameEn: category.name.en,
+      descriptionZhHant: category.description["zh-hant"],
+      descriptionZhHans: category.description["zh-hans"],
+      descriptionEn: category.description.en,
+      displayOrder: category.displayOrder,
+      isDefault: category.isDefault,
+      isActive: category.isActive,
+    }).onConflictDoUpdate({ target: catalogCategories.slug, set: { nameZhHant: category.name["zh-hant"], nameZhHans: category.name["zh-hans"], nameEn: category.name.en } });
+  }
   for (const putter of samplePutters.slice(0, 4)) {
     const [row] = await db.insert(putters).values({
       slug: putter.slug, brand: putter.brand, model: putter.model, modelFamily: putter.modelFamily, releaseYear: putter.releaseYear,
-      category: putter.category, status: putter.status, headStyle: putter.headStyle, headMaterial: putter.headMaterial, finish: putter.finish,
+      category: putter.category, catalogCategoryId: DEFAULT_CATALOG_CATEGORIES[0].id, status: putter.status, headStyle: putter.headStyle, headMaterial: putter.headMaterial, finish: putter.finish,
       neckType: putter.neckType, alignmentAid: putter.alignmentAid, lengthInches: putter.lengthInches, loftDegrees: putter.loftDegrees,
       lieDegrees: putter.lieDegrees, headWeightGrams: putter.headWeightGrams, shaft: putter.shaft, grip: putter.grip, headcover: putter.headcover,
       paintFill: putter.paintFill, coaStatus: putter.coaStatus, serialNumber: putter.serialNumber, conditionScore: putter.conditionScore,

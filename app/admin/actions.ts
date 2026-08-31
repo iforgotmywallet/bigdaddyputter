@@ -3,14 +3,14 @@
 import { compare } from "bcryptjs";
 import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
-import { revalidatePath, revalidateTag, updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getDb, hasDatabase } from "@/db/client";
-import { inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
+import { catalogCategories, inquiries, putterImages, putters, putterTranslations, siteSettings, testimonials } from "@/db/schema";
 import { clearAdminSession, createAdminSession, requireAdmin } from "@/lib/auth/session";
 import { publicAdminLogoutDestination } from "@/lib/auth/admin-access";
-import { adminLoginSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
+import { adminLoginSchema, catalogCategoryAdminSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { getAdminMessages } from "@/lib/admin-i18n";
 import { deleteUnreferencedCloudinaryImages } from "@/lib/images/cloudinary-cleanup";
 import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/paths";
@@ -46,7 +46,7 @@ export async function logoutAdminFromPublicAction(formData: FormData) {
 }
 
 function toObject(formData: FormData) { return { ...Object.fromEntries(formData.entries()), isFeatured: formData.get("isFeatured") === "on", isPublished: formData.get("isPublished") === "on" }; }
-function refreshPutter(id: string, slug: string) { revalidateTag(`putter:${id}`, "max"); revalidateTag("putters", "max"); revalidatePath("/"); revalidatePath("/[locale]/collection", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }
+function refreshCollectionItem(slug: string) { revalidatePath("/[locale]", "page"); revalidatePath("/[locale]/collection", "page"); revalidatePath("/[locale]/collection/category/[categorySlug]", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }
 function emptyToNull<T>(value: T | "") { return value === "" ? null : value; }
 
 export async function savePutterAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
@@ -56,11 +56,14 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   const result = putterAdminSchema.safeParse(toObject(formData));
   if (!result.success) { const fields = result.error.flatten().fieldErrors; return { status: "error", message: editorMessages.errors.reviewFields, errors: Object.fromEntries(Object.keys(fields).map((key) => [key, editorMessages.errors.invalidField])) }; }
   const data = result.data; const db = getDb();
+  const [selectedCategory] = await db.select({ id: catalogCategories.id }).from(catalogCategories).where(and(eq(catalogCategories.id, data.catalogCategoryId), eq(catalogCategories.isActive, true))).limit(1);
+  if (!selectedCategory) return { status: "error", message: editorMessages.errors.reviewFields, errors: { catalogCategoryId: editorMessages.errors.invalidField } };
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
   if (invalidImage) return { status: "error", message: editorMessages.errors.invalidImages };
   const values = {
     slug: data.slug,
+    catalogCategoryId: data.catalogCategoryId,
     brand: data.brand,
     model: data.model,
     modelFamily: emptyToNull(data.modelFamily),
@@ -131,7 +134,7 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   } catch (error) {
     console.error("Could not clean up removed Cloudinary assets", error);
   }
-  refreshPutter(id, data.slug); redirect(`/admin/putters/${id}?saved=1`);
+  refreshCollectionItem(data.slug); redirect(`/admin/putters/${id}?saved=1`);
 }
 
 export async function duplicatePutterAction(formData: FormData) {
@@ -182,7 +185,7 @@ export async function deletePutterAction(formData: FormData) {
   } catch (error) {
     console.error("Could not clean up deleted putter assets", error);
   }
-  refreshPutter(id, slug); redirect("/admin/putters");
+  refreshCollectionItem(slug); redirect("/admin/putters");
 }
 
 export async function updateInquiryAction(formData: FormData) {
@@ -197,6 +200,50 @@ export async function saveTestimonialAction(formData: FormData) {
   const quote = String(formData.get("quote") ?? "").trim().slice(0, 2000); const name = String(formData.get("name") ?? "").trim().slice(0, 100); const locale = String(formData.get("locale") ?? "en");
   if (!quote || !name || !["zh-hant", "zh-hans", "en"].includes(locale)) return;
   await getDb().insert(testimonials).values({ quote, name, locale, location: String(formData.get("location") ?? "").slice(0, 120) || null, isPublished: formData.get("isPublished") === "on" }); revalidatePath("/admin/testimonials");
+}
+
+export async function saveCatalogCategoryAction(formData: FormData) {
+  await requireAdmin();
+  if (!hasDatabase()) redirect("/admin/categories?error=1");
+  const result = catalogCategoryAdminSchema.safeParse({
+    ...Object.fromEntries(formData.entries()),
+    isDefault: formData.get("isDefault") === "on",
+    isActive: formData.get("isActive") === "on",
+  });
+  if (!result.success) redirect("/admin/categories?error=1");
+  const data = result.data;
+  const db = getDb();
+  const [current] = data.id ? await db.select().from(catalogCategories).where(eq(catalogCategories.id, data.id)).limit(1) : [];
+  if (data.id && !current) redirect("/admin/categories?error=1");
+  const isDefault = data.isDefault || Boolean(current?.isDefault);
+  const values = {
+    slug: data.slug,
+    nameZhHant: data.nameZhHant,
+    nameZhHans: data.nameZhHans,
+    nameEn: data.nameEn,
+    descriptionZhHant: data.descriptionZhHant,
+    descriptionZhHans: data.descriptionZhHans,
+    descriptionEn: data.descriptionEn,
+    displayOrder: data.displayOrder,
+    isDefault,
+    isActive: isDefault || data.isActive,
+    updatedAt: new Date(),
+  };
+  try {
+    const mutation = data.id
+      ? db.update(catalogCategories).set(values).where(eq(catalogCategories.id, data.id))
+      : db.insert(catalogCategories).values(values);
+    if (data.isDefault) await db.batch([db.update(catalogCategories).set({ isDefault: false }), mutation]);
+    else await mutation;
+  } catch (error) {
+    console.error("Could not save catalogue category", error);
+    redirect("/admin/categories?error=1");
+  }
+  revalidatePath("/[locale]", "page");
+  revalidatePath("/[locale]/collection", "page");
+  revalidatePath("/[locale]/collection/category/[categorySlug]", "page");
+  revalidatePath("/admin/categories");
+  redirect("/admin/categories?saved=1");
 }
 
 export async function saveSettingsAction(formData: FormData) {

@@ -1,4 +1,24 @@
+import { sql } from "drizzle-orm";
 import { boolean, char, index, integer, numeric, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+
+export const catalogCategories = pgTable("catalog_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: varchar("slug", { length: 80 }).notNull().unique(),
+  nameZhHant: varchar("name_zh_hant", { length: 80 }).notNull(),
+  nameZhHans: varchar("name_zh_hans", { length: 80 }).notNull(),
+  nameEn: varchar("name_en", { length: 80 }).notNull(),
+  descriptionZhHant: text("description_zh_hant").notNull().default(""),
+  descriptionZhHans: text("description_zh_hans").notNull().default(""),
+  descriptionEn: text("description_en").notNull().default(""),
+  displayOrder: integer("display_order").notNull().default(0),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("catalog_categories_active_order_idx").on(table.isActive, table.displayOrder),
+  uniqueIndex("catalog_categories_one_default_idx").on(table.isDefault).where(sql`${table.isDefault} = true`),
+]);
 
 export const putters = pgTable("putters", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,6 +28,7 @@ export const putters = pgTable("putters", {
   modelFamily: varchar("model_family", { length: 120 }),
   releaseYear: integer("release_year"),
   category: varchar("category", { length: 120 }),
+  catalogCategoryId: uuid("catalog_category_id").references(() => catalogCategories.id, { onDelete: "set null" }),
   status: varchar("status", { length: 24 }).notNull(),
   headStyle: varchar("head_style", { length: 120 }),
   headMaterial: varchar("head_material", { length: 120 }),
@@ -40,6 +61,7 @@ export const putters = pgTable("putters", {
   index("putters_published_status_idx").on(table.isPublished, table.status),
   index("putters_featured_order_idx").on(table.isFeatured, table.displayOrder),
   index("putters_published_at_idx").on(table.publishedAt),
+  index("putters_catalog_category_idx").on(table.catalogCategoryId),
 ]);
 
 export const putterTranslations = pgTable("putter_translations", {

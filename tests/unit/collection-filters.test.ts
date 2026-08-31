@@ -7,12 +7,9 @@ const labels = {
   filters: "Filter collection",
   availability: "Availability",
   brand: "Brand",
-  material: "Material",
-  headStyle: "Head shape",
-  year: "Year",
-  category: "Collection",
   sort: "Sort",
   search: "Search",
+  searchByName: "Search by name",
   apply: "Apply",
   clear: "Clear",
   all: "All",
@@ -38,7 +35,7 @@ describe("collection filter disclosure", () => {
     const html = renderToStaticMarkup(createElement(CollectionFiltersForm, {
       action: "/en/collection",
       filters: { status: "available", sort: "featured", page: 1 },
-      facets: { brands: [], materials: [], headStyles: [], categories: [], years: [] },
+      facets: { brands: [] },
       labels,
       resultCount: 3,
     }));
@@ -49,5 +46,7 @@ describe("collection filter disclosure", () => {
     expect(html).toContain("3 items");
     expect(html).toContain('<b aria-label="1">1</b>');
     expect(html).toContain('<option value="">All</option>');
+    expect(html).toContain("filter-search-disclosure");
+    expect(html).toContain("Search by name");
   });
 });

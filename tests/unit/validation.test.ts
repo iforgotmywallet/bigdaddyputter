@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCollectionFilters, slugSchema } from "@/lib/validation/collection";
 import { inquirySchema } from "@/lib/validation/inquiry";
 import { customerInterestSchema, customerProfileSchema } from "@/lib/validation/customer";
-import { cloudinaryCleanupSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
+import { catalogCategoryAdminSchema, cloudinaryCleanupSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/constants";
 
 describe("slug validation", () => {
@@ -53,6 +53,7 @@ describe("admin site settings validation", () => {
 describe("admin putter validation", () => {
   const valid = {
     slug: "scotty-cameron-gss-circle-t",
+    catalogCategoryId: "10000000-0000-4000-8000-000000000001",
     brand: "Scotty Cameron",
     model: "GSS Timeless TourType Circle T",
     titleZhHant: "Scotty Cameron GSS Timeless TourType Circle T",
@@ -70,6 +71,12 @@ describe("admin putter validation", () => {
     expect(putterAdminSchema.safeParse({ ...valid, priceAmount: "" }).success).toBe(false);
     expect(putterAdminSchema.safeParse({ ...valid, priceMode: "hidden", priceAmount: "" }).success).toBe(true);
   });
+});
+
+describe("catalogue category validation", () => {
+  const valid = { slug: "headcovers", nameZhHant: "桿套", nameZhHans: "杆套", nameEn: "Headcovers", descriptionZhHant: "", descriptionZhHans: "", descriptionEn: "", displayOrder: 1, isDefault: false, isActive: true };
+  it("accepts an additional localized category", () => expect(catalogCategoryAdminSchema.safeParse(valid).success).toBe(true));
+  it("rejects category URL names with spaces", () => expect(catalogCategoryAdminSchema.safeParse({ ...valid, slug: "Golf Bags" }).success).toBe(false));
 });
 
 describe("Cloudinary cleanup validation", () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getMessages, isLocale } from "@/lib/i18n";
+import { DEFAULT_CATALOG_CATEGORIES } from "@/lib/constants";
 
 describe("locale validation", () => {
   it.each(["zh-hant", "zh-hans", "en"])("accepts %s", (locale) => expect(isLocale(locale)).toBe(true));
@@ -14,6 +15,14 @@ describe("availability labels", () => {
     ["en", "All"],
   ] as const)("uses a readable default filter label in %s", (locale, label) => {
     expect(getMessages(locale).common.all).toBe(label);
+  });
+});
+
+describe("catalogue categories", () => {
+  it("ships the four requested categories with one default", () => {
+    expect(DEFAULT_CATALOG_CATEGORIES.map((category) => category.slug)).toEqual(["putters", "headcovers", "golf-bags", "accessories"]);
+    expect(DEFAULT_CATALOG_CATEGORIES.filter((category) => category.isDefault)).toHaveLength(1);
+    expect(DEFAULT_CATALOG_CATEGORIES[0].name["zh-hans"]).toBe("推杆");
   });
 });
 

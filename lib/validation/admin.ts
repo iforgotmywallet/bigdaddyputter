@@ -23,6 +23,20 @@ export const siteSettingsAdminSchema = z.object({
   xiaohongshuUrl: optionalHttpUrlSchema,
 });
 
+export const catalogCategoryAdminSchema = z.object({
+  id: z.string().uuid().optional(),
+  slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(80),
+  nameZhHant: z.string().trim().min(1).max(80),
+  nameZhHans: z.string().trim().min(1).max(80),
+  nameEn: z.string().trim().min(1).max(80),
+  descriptionZhHant: z.string().trim().max(500),
+  descriptionZhHans: z.string().trim().max(500),
+  descriptionEn: z.string().trim().max(500),
+  displayOrder: z.coerce.number().int().min(0).max(999),
+  isDefault: z.boolean(),
+  isActive: z.boolean(),
+});
+
 export const cloudinaryCleanupSchema = z.object({
   storageKeys: z.array(z.string().max(600).refine(isManagedCloudinaryKey)).max(12),
 });
@@ -53,6 +67,7 @@ const priceAmountSchema = z.literal("").or(z.string().trim().regex(/^\d{1,9}(?:\
 export const putterAdminSchema = z.object({
   id: z.string().uuid().optional(),
   slug: slugSchema,
+  catalogCategoryId: z.string().uuid(),
   brand: z.string().trim().min(1).max(100),
   model: z.string().trim().min(1).max(120),
   modelFamily: optionalShortText(120),

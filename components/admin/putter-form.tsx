@@ -6,7 +6,7 @@ import { savePutterAction, type AdminActionState } from "@/app/admin/actions";
 import { AdminImageManager } from "@/components/admin/image-manager";
 import type { AdminPutterEditorMessages } from "@/lib/admin-i18n";
 import type { AdminImageInput } from "@/lib/images/paths";
-import type { Locale, PutterStatus, PutterTranslation } from "@/lib/types";
+import type { CatalogCategory, Locale, PutterStatus, PutterTranslation } from "@/lib/types";
 
 const initialState: AdminActionState = { status: "idle", message: "" };
 const statuses: PutterStatus[] = ["available", "reserved", "sold", "display_only", "private"];
@@ -19,6 +19,7 @@ interface PutterFormData {
   model?: string;
   modelFamily?: string | null;
   category?: string | null;
+  catalogCategoryId?: string | null;
   releaseYear?: number | null;
   status?: string;
   headMaterial?: string | null;
@@ -53,6 +54,8 @@ interface PutterFormProps {
   labels: AdminPutterEditorMessages;
   locale: Locale;
   statusLabels: Record<PutterStatus, string>;
+  categories: CatalogCategory[];
+  defaultCategoryId: string;
 }
 
 interface InputOptions {
@@ -77,7 +80,7 @@ function amountFromCents(cents?: number | null) {
   return String(cents / 100);
 }
 
-export function PutterForm({ data = {}, labels, locale, statusLabels }: PutterFormProps) {
+export function PutterForm({ data = {}, labels, locale, statusLabels, categories, defaultCategoryId }: PutterFormProps) {
   const [state, action] = useActionState(savePutterAction, initialState);
   const input = (name: string, label: string, defaultValue?: string | number | null, options: InputOptions = {}) => <label className={options.className}>
     <span>{label}</span>
@@ -117,6 +120,7 @@ export function PutterForm({ data = {}, labels, locale, statusLabels }: PutterFo
       <legend>{labels.identity}</legend>
       <p className="admin-fieldset-intro">{labels.identityIntro}</p>
       <div className="admin-form-grid">
+        <label><span>{labels.catalogCategory}</span><select name="catalogCategoryId" defaultValue={data.catalogCategoryId ?? defaultCategoryId} required>{categories.map((category) => <option key={category.id} value={category.id}>{category.name[locale]}{category.isDefault ? " · ★" : ""}</option>)}</select></label>
         {input("brand", labels.brand, data.brand, { required: true })}
         {input("model", labels.model, data.model, { required: true, className: "admin-span-2" })}
         {input("modelFamily", labels.modelFamily, data.modelFamily, { help: labels.modelFamilyHelp })}

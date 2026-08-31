@@ -8,6 +8,16 @@ export type PriceMode = "hidden" | "amount" | "on_request";
 
 export type LocalizedText = Record<Locale, string>;
 
+export interface CatalogCategory {
+  id: string;
+  slug: string;
+  name: LocalizedText;
+  description: LocalizedText;
+  displayOrder: number;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
 export interface PutterImage {
   id: string;
   src: string;
@@ -38,6 +48,8 @@ export interface Putter {
   modelFamily?: string;
   releaseYear?: number;
   category?: string;
+  catalogCategoryId?: string;
+  catalogCategory?: CatalogCategory;
   status: PutterStatus;
   headStyle?: string;
   headMaterial?: string;

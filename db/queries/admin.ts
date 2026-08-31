@@ -4,8 +4,8 @@ import { inquiries, putterImages, putters, putterTranslations, testimonials } fr
 import { samplePutters } from "@/lib/data/sample-putters";
 
 export async function getAdminPutters() {
-  if (!hasDatabase()) return samplePutters.map((putter) => ({ id: putter.id, slug: putter.slug, brand: putter.brand, model: putter.model, status: putter.status, isFeatured: putter.isFeatured, isPublished: putter.isPublished, displayOrder: putter.displayOrder, updatedAt: new Date(putter.updatedAt) }));
-  return getDb().select({ id: putters.id, slug: putters.slug, brand: putters.brand, model: putters.model, status: putters.status, isFeatured: putters.isFeatured, isPublished: putters.isPublished, displayOrder: putters.displayOrder, updatedAt: putters.updatedAt }).from(putters).orderBy(desc(putters.updatedAt));
+  if (!hasDatabase()) return samplePutters.map((putter) => ({ id: putter.id, slug: putter.slug, brand: putter.brand, model: putter.model, catalogCategoryId: putter.catalogCategoryId ?? null, status: putter.status, isFeatured: putter.isFeatured, isPublished: putter.isPublished, displayOrder: putter.displayOrder, updatedAt: new Date(putter.updatedAt) }));
+  return getDb().select({ id: putters.id, slug: putters.slug, brand: putters.brand, model: putters.model, catalogCategoryId: putters.catalogCategoryId, status: putters.status, isFeatured: putters.isFeatured, isPublished: putters.isPublished, displayOrder: putters.displayOrder, updatedAt: putters.updatedAt }).from(putters).orderBy(desc(putters.updatedAt));
 }
 
 export async function getAdminPutter(id: string) {
