@@ -17,6 +17,7 @@ import { isApprovedImageSource, isManagedCloudinaryKey } from "@/lib/images/path
 import type { Locale } from "@/lib/types";
 import { LOCALE_PREFERENCE_COOKIE } from "@/lib/locale-preference";
 import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/constants";
+import { buildCategorySpecifications } from "@/lib/category-specifications";
 
 export interface AdminActionState { status: "idle" | "error" | "success"; message: string; errors?: Record<string, string>; }
 
@@ -56,8 +57,9 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
   const result = putterAdminSchema.safeParse(toObject(formData));
   if (!result.success) { const fields = result.error.flatten().fieldErrors; return { status: "error", message: editorMessages.errors.reviewFields, errors: Object.fromEntries(Object.keys(fields).map((key) => [key, editorMessages.errors.invalidField])) }; }
   const data = result.data; const db = getDb();
-  const [selectedCategory] = await db.select({ id: catalogCategories.id }).from(catalogCategories).where(and(eq(catalogCategories.id, data.catalogCategoryId), eq(catalogCategories.isActive, true))).limit(1);
+  const [selectedCategory] = await db.select({ id: catalogCategories.id, slug: catalogCategories.slug }).from(catalogCategories).where(and(eq(catalogCategories.id, data.catalogCategoryId), eq(catalogCategories.isActive, true))).limit(1);
   if (!selectedCategory) return { status: "error", message: editorMessages.errors.reviewFields, errors: { catalogCategoryId: editorMessages.errors.invalidField } };
+  const isPutter = selectedCategory.slug === "putters";
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const invalidImage = data.imagesJson.find((image) => !isApprovedImageSource(image.src, cloudName) || (image.storageKey && !isManagedCloudinaryKey(image.storageKey)));
   if (invalidImage) return { status: "error", message: editorMessages.errors.invalidImages };
@@ -69,20 +71,21 @@ export async function savePutterAction(_previous: AdminActionState, formData: Fo
     modelFamily: emptyToNull(data.modelFamily),
     category: emptyToNull(data.category),
     releaseYear: emptyToNull(data.releaseYear),
+    categorySpecifications: buildCategorySpecifications(selectedCategory.slug, data),
     status: data.status,
-    headStyle: emptyToNull(data.headStyle),
-    headMaterial: emptyToNull(data.headMaterial),
-    finish: emptyToNull(data.finish),
-    neckType: emptyToNull(data.neckType),
-    alignmentAid: emptyToNull(data.alignmentAid),
-    lengthInches: emptyToNull(data.lengthInches),
-    loftDegrees: emptyToNull(data.loftDegrees),
-    lieDegrees: emptyToNull(data.lieDegrees),
-    headWeightGrams: emptyToNull(data.headWeightGrams),
-    shaft: emptyToNull(data.shaft),
-    grip: emptyToNull(data.grip),
-    headcover: emptyToNull(data.headcover),
-    paintFill: emptyToNull(data.paintFill),
+    headStyle: isPutter ? emptyToNull(data.headStyle) : null,
+    headMaterial: isPutter ? emptyToNull(data.headMaterial) : null,
+    finish: isPutter ? emptyToNull(data.finish) : null,
+    neckType: isPutter ? emptyToNull(data.neckType) : null,
+    alignmentAid: isPutter ? emptyToNull(data.alignmentAid) : null,
+    lengthInches: isPutter ? emptyToNull(data.lengthInches) : null,
+    loftDegrees: isPutter ? emptyToNull(data.loftDegrees) : null,
+    lieDegrees: isPutter ? emptyToNull(data.lieDegrees) : null,
+    headWeightGrams: isPutter ? emptyToNull(data.headWeightGrams) : null,
+    shaft: isPutter ? emptyToNull(data.shaft) : null,
+    grip: isPutter ? emptyToNull(data.grip) : null,
+    headcover: isPutter ? emptyToNull(data.headcover) : null,
+    paintFill: isPutter ? emptyToNull(data.paintFill) : null,
     coaStatus: emptyToNull(data.coaStatus),
     serialNumber: emptyToNull(data.serialNumber),
     conditionScore: emptyToNull(data.conditionScore),

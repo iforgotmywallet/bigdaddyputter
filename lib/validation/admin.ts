@@ -63,6 +63,7 @@ const optionalShortText = (max: number) => z.string().trim().max(max).optional()
 const optionalNumber = (minimum: number, maximum: number) => z.literal("").or(z.coerce.number().min(minimum).max(maximum)).optional().default("");
 const optionalInteger = (minimum: number, maximum: number) => z.literal("").or(z.coerce.number().int().min(minimum).max(maximum)).optional().default("");
 const priceAmountSchema = z.literal("").or(z.string().trim().regex(/^\d{1,9}(?:\.\d{1,2})?$/));
+const optionalDate = z.string().trim().refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value)).optional().default("");
 
 export const putterAdminSchema = z.object({
   id: z.string().uuid().optional(),
@@ -73,6 +74,25 @@ export const putterAdminSchema = z.object({
   modelFamily: optionalShortText(120),
   category: optionalShortText(120),
   releaseYear: optionalInteger(1900, 2100),
+  productCode: optionalShortText(120),
+  releaseDate: optionalDate,
+  releaseEvent: optionalShortText(160),
+  edition: optionalShortText(160),
+  colorway: optionalShortText(160),
+  material: optionalShortText(160),
+  bagType: optionalShortText(120),
+  dividerTop: optionalShortText(120),
+  strapSystem: optionalShortText(160),
+  pocketCount: optionalInteger(0, 50),
+  weightPounds: optionalNumber(0, 50),
+  featureSummary: optionalShortText(2000),
+  headcoverFit: optionalShortText(120),
+  handedness: optionalShortText(80),
+  closureType: optionalShortText(120),
+  accessoryType: optionalShortText(120),
+  dimensions: optionalShortText(160),
+  weightGrams: optionalNumber(0, 10000),
+  galleryOrigin: optionalShortText(160),
   headStyle: optionalShortText(120),
   headMaterial: optionalShortText(120),
   finish: optionalShortText(120),

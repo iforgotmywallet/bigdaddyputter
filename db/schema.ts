@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { boolean, char, index, integer, numeric, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, char, index, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import type { CategorySpecifications } from "@/lib/types";
 
 export const catalogCategories = pgTable("catalog_categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -29,6 +30,7 @@ export const putters = pgTable("putters", {
   releaseYear: integer("release_year"),
   category: varchar("category", { length: 120 }),
   catalogCategoryId: uuid("catalog_category_id").references(() => catalogCategories.id, { onDelete: "set null" }),
+  categorySpecifications: jsonb("category_specifications").$type<CategorySpecifications>().notNull().default({}),
   status: varchar("status", { length: 24 }).notNull(),
   headStyle: varchar("head_style", { length: 120 }),
   headMaterial: varchar("head_material", { length: 120 }),

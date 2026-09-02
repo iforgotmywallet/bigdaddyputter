@@ -18,6 +18,28 @@ export interface CatalogCategory {
   isActive: boolean;
 }
 
+export interface CategorySpecifications {
+  productCode?: string;
+  releaseDate?: string;
+  releaseEvent?: string;
+  edition?: string;
+  colorway?: string;
+  material?: string;
+  bagType?: string;
+  dividerTop?: string;
+  strapSystem?: string;
+  pocketCount?: number;
+  weightPounds?: number;
+  featureSummary?: string;
+  headcoverFit?: string;
+  handedness?: string;
+  closureType?: string;
+  accessoryType?: string;
+  dimensions?: string;
+  weightGrams?: number;
+  galleryOrigin?: string;
+}
+
 export interface PutterImage {
   id: string;
   src: string;
@@ -50,6 +72,7 @@ export interface Putter {
   category?: string;
   catalogCategoryId?: string;
   catalogCategory?: CatalogCategory;
+  categorySpecifications?: CategorySpecifications;
   status: PutterStatus;
   headStyle?: string;
   headMaterial?: string;

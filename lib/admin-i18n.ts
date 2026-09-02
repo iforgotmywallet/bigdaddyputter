@@ -11,6 +11,29 @@ export interface AdminPutterEditorMessages {
   identityIntro: string;
   playingSpecifications: string;
   playingSpecificationsIntro: string;
+  categoryFields: {
+    sections: Record<"headcovers" | "golfBags" | "accessories" | "additional", { title: string; intro: string }>;
+    productCode: string;
+    releaseDate: string;
+    releaseEvent: string;
+    edition: string;
+    colorway: string;
+    material: string;
+    bagType: string;
+    dividerTop: string;
+    strapSystem: string;
+    pocketCount: string;
+    weightPounds: string;
+    featureSummary: string;
+    headcoverFit: string;
+    handedness: string;
+    closureType: string;
+    accessoryType: string;
+    dimensions: string;
+    weightGrams: string;
+    galleryOrigin: string;
+    examples: Record<"releaseEvent" | "edition" | "colorway" | "material" | "bagType" | "headcoverFit" | "accessoryType" | "galleryOrigin", string>;
+  };
   collectorDetails: string;
   collectorDetailsIntro: string;
   localizedContent: string;
@@ -155,10 +178,22 @@ const messages = {
       newEyebrow: "Catalogue / New", newTitle: "New collection item", editEyebrow: "Catalogue / Edit", preview: "View public page", previewUnavailable: "Public page unavailable while private",
       identity: "Item identity", identityIntro: "Choose the main category first, then record the maker and exact item name. Use the optional subcategory for a series or specialist grouping.",
       playingSpecifications: "Head and playing specifications", playingSpecificationsIntro: "Record the measurements and build details a player or serious collector will look for first.",
+      categoryFields: {
+        sections: {
+          headcovers: { title: "Headcover details", intro: "Record fit, handedness, construction, colourway, closure, and the release that identifies this cover." },
+          golfBags: { title: "Golf bag details", intro: "Record the bag format, construction, carrying setup, storage, and limited-release features a collector will compare." },
+          accessories: { title: "Accessory details", intro: "Record what the object is, its material, dimensions, finish, and Gallery or release origin." },
+          additional: { title: "Category details", intro: "Record the release, material, colourway, and dimensions that distinguish this item." },
+        },
+        productCode: "Product / reference code", releaseDate: "Release date", releaseEvent: "Release / event", edition: "Edition / series", colorway: "Colourway", material: "Material",
+        bagType: "Bag type", dividerTop: "Top / dividers", strapSystem: "Strap system", pocketCount: "Pocket count", weightPounds: "Weight (lb)", featureSummary: "Construction and features",
+        headcoverFit: "Putter fit / shape", handedness: "Handedness", closureType: "Closure", accessoryType: "Accessory type", dimensions: "Dimensions", weightGrams: "Weight (grams)", galleryOrigin: "Gallery / release origin",
+        examples: { releaseEvent: "2026 U.S. Open / Open Championship", edition: "Limited Release / Gallery Exclusive", colorway: "Liberty Blue / Black–Pink", material: "SSS / leather / technical fabric", bagType: "Pathfinder stand bag", headcoverFit: "Blade / Mid-Round / Mallet", accessoryType: "Ball marker / pivot tool", galleryOrigin: "Gallery Encinitas / Club Cameron" },
+      },
       collectorDetails: "Collector details", collectorDetailsIntro: "Document the accompanying pieces, authentication, condition, and internal source record.",
       localizedContent: "Visitor-facing copy", localizedContentIntro: "Write naturally for each audience. Product names such as GSS, Circle T, Timeless, and TourType should normally remain unchanged.", localeEditorHint: "Title, notes, included items, and search copy",
       catalogueState: "Availability, price, and visibility", catalogueStateIntro: "Status describes the item. Publishing controls whether the record appears on the public site.",
-      slug: "Public page address", slugHelp: "The final part of the page URL. Use lowercase words separated by hyphens; change only when necessary.", brand: "Maker", model: "Item name / model", modelFamily: "Model family", modelFamilyHelp: "Useful for grouping related designs, such as Timeless / TourType.", catalogCategory: "Main category", category: "Optional subcategory", releaseYear: "Model year",
+      slug: "Public page address", slugHelp: "The final part of the page URL. Use lowercase words separated by hyphens; change only when necessary.", brand: "Maker", model: "Item name / model", modelFamily: "Series / product family", modelFamilyHelp: "Group related designs, such as Timeless, Pathfinder, Gentleman Jackpot, or Gallery markers.", catalogCategory: "Main category", category: "Optional subcategory", releaseYear: "Release year",
       traditionalChinese: "Traditional Chinese", simplifiedChinese: "Simplified Chinese", english: "English",
       title: "Listing title", subtitle: "One-line specification summary", overview: "Overview", collectorNotes: "Collector notes", conditionNotes: "Condition notes", provenanceText: "Provenance shown to visitors", includedItems: "Included items", seoTitle: "Search title", seoDescription: "Search description",
       status: "Availability", headMaterial: "Head material", headStyle: "Head shape", finish: "Finish", neckType: "Neck / hosel", alignmentAid: "Alignment aid", lengthInches: "Length (inches)", loftDegrees: "Loft (degrees)", lieDegrees: "Lie (degrees)", headWeightGrams: "Head weight (grams)", shaft: "Shaft", grip: "Grip", headcover: "Headcover", paintFill: "Paint fill", coaStatus: "Certificate of authenticity", coaHelp: "State whether a COA is included and add its number, for example: Included — A-074011.", serialNumber: "Serial / registry number", conditionScore: "Condition score (0–10)", location: "Current location", provenanceSummary: "Internal source / provenance note",
@@ -209,10 +244,22 @@ const messages = {
       newEyebrow: "收藏目錄 / 新增", newTitle: "新增藏品", editEyebrow: "收藏目錄 / 編輯", preview: "查看公開頁面", previewUnavailable: "未公開的草稿尚無公開頁面",
       identity: "藏品識別資料", identityIntro: "先選擇主要分類，再填寫品牌及藏品名稱；系列或專門分組可填在選填的次分類。",
       playingSpecifications: "桿頭與實打規格", playingSpecificationsIntro: "優先記錄球手與資深藏家最關心的尺寸、重量及組裝配置。",
+      categoryFields: {
+        sections: {
+          headcovers: { title: "桿套資料", intro: "記錄適用桿型、左右手、材質、配色、閉合方式及所屬發售活動。" },
+          golfBags: { title: "球包資料", intro: "記錄球包款式、用料、背帶配置、收納及限量版本特色。" },
+          accessories: { title: "配件資料", intro: "記錄配件種類、材質、尺寸、配色，以及 Gallery 或發售來源。" },
+          additional: { title: "分類專屬資料", intro: "記錄能辨識此件藏品的發售、材質、配色與尺寸。" },
+        },
+        productCode: "產品／參考編號", releaseDate: "發售日期", releaseEvent: "發售活動／賽事", edition: "版本／系列", colorway: "配色", material: "材質",
+        bagType: "球包款式", dividerTop: "頂部／分隔", strapSystem: "背帶系統", pocketCount: "口袋數量", weightPounds: "重量（磅）", featureSummary: "結構與特色",
+        headcoverFit: "適用桿型／外形", handedness: "左右手", closureType: "閉合方式", accessoryType: "配件種類", dimensions: "尺寸", weightGrams: "重量（克）", galleryOrigin: "Gallery／發售來源",
+        examples: { releaseEvent: "2026 美國公開賽 / 英國公開賽", edition: "限量發售 / Gallery 限定", colorway: "Liberty Blue / 黑粉配色", material: "SSS / 皮革 / 機能布料", bagType: "Pathfinder 企袋", headcoverFit: "Blade / Mid-Round / Mallet", accessoryType: "球標 / Pivot Tool", galleryOrigin: "Gallery Encinitas / Club Cameron" },
+      },
       collectorDetails: "收藏資料", collectorDetailsIntro: "記錄隨附配件、認證、品相，以及僅供內部查核的來源。",
       localizedContent: "訪客頁面文案", localizedContentIntro: "三種語言應分別自然撰寫；GSS、Circle T、Timeless、TourType 等正式名稱一般毋須翻譯。", localeEditorHint: "標題、說明、隨附配件與搜尋摘要",
       catalogueState: "供應狀態、價格與公開設定", catalogueStateIntro: "供應狀態描述藏品本身；公開設定則決定訪客能否在網站看到此記錄。",
-      slug: "公開頁面網址", slugHelp: "頁面網址最後一段。請使用小寫英文與連字號；非必要請勿更改。", brand: "品牌／製作者", model: "藏品名稱／型號", modelFamily: "型號系列", modelFamilyHelp: "用於歸類相近設計，例如 Timeless / TourType。", catalogCategory: "主要分類", category: "選填次分類", releaseYear: "型號年份",
+      slug: "公開頁面網址", slugHelp: "頁面網址最後一段。請使用小寫英文與連字號；非必要請勿更改。", brand: "品牌／製作者", model: "藏品名稱／型號", modelFamily: "系列／產品家族", modelFamilyHelp: "用於歸類相近設計，例如 Timeless、Pathfinder、Gentleman Jackpot 或 Gallery 球標。", catalogCategory: "主要分類", category: "選填次分類", releaseYear: "發售年份",
       traditionalChinese: "繁體中文", simplifiedChinese: "簡體中文", english: "英文",
       title: "藏品標題", subtitle: "一行規格摘要", overview: "藏品介紹", collectorNotes: "收藏筆記", conditionNotes: "品相說明", provenanceText: "向訪客顯示的來源紀錄", includedItems: "隨附配件", seoTitle: "搜尋結果標題", seoDescription: "搜尋結果摘要",
       status: "供應狀態", headMaterial: "桿頭材質", headStyle: "桿頭造型", finish: "表面處理", neckType: "桿頸形式", alignmentAid: "瞄準標記", lengthInches: "桿長（吋）", loftDegrees: "傾角（度）", lieDegrees: "Lie 角（度）", headWeightGrams: "桿頭重量（克）", shaft: "桿身", grip: "握把", headcover: "桿頭套", paintFill: "填漆", coaStatus: "原廠認證書（COA）", coaHelp: "請註明是否隨附認證書及編號，例如：隨附 — A-074011。", serialNumber: "序號／登記編號", conditionScore: "品相評分（0–10）", location: "目前所在地", provenanceSummary: "內部來源／查核備註",
@@ -263,10 +310,22 @@ const messages = {
       newEyebrow: "收藏目录 / 新增", newTitle: "新增藏品", editEyebrow: "收藏目录 / 编辑", preview: "查看公开页面", previewUnavailable: "未公开的草稿暂无公开页面",
       identity: "藏品识别资料", identityIntro: "先选择主要分类，再填写品牌和藏品名称；系列或专门分组可填在选填的次分类。",
       playingSpecifications: "杆头与实打规格", playingSpecificationsIntro: "优先记录球手与资深藏家最关心的尺寸、重量及组装配置。",
+      categoryFields: {
+        sections: {
+          headcovers: { title: "杆套资料", intro: "记录适用杆型、左右手、材质、配色、闭合方式及所属发售活动。" },
+          golfBags: { title: "球包资料", intro: "记录球包款式、用料、背带配置、收纳及限量版本特色。" },
+          accessories: { title: "配件资料", intro: "记录配件种类、材质、尺寸、配色，以及 Gallery 或发售来源。" },
+          additional: { title: "分类专属资料", intro: "记录能识别这件藏品的发售、材质、配色与尺寸。" },
+        },
+        productCode: "产品／参考编号", releaseDate: "发售日期", releaseEvent: "发售活动／赛事", edition: "版本／系列", colorway: "配色", material: "材质",
+        bagType: "球包款式", dividerTop: "顶部／分隔", strapSystem: "背带系统", pocketCount: "口袋数量", weightPounds: "重量（磅）", featureSummary: "结构与特色",
+        headcoverFit: "适用杆型／外形", handedness: "左右手", closureType: "闭合方式", accessoryType: "配件种类", dimensions: "尺寸", weightGrams: "重量（克）", galleryOrigin: "Gallery／发售来源",
+        examples: { releaseEvent: "2026 美国公开赛 / 英国公开赛", edition: "限量发售 / Gallery 限定", colorway: "Liberty Blue / 黑粉配色", material: "SSS / 皮革 / 功能布料", bagType: "Pathfinder 支架包", headcoverFit: "Blade / Mid-Round / Mallet", accessoryType: "球标 / Pivot Tool", galleryOrigin: "Gallery Encinitas / Club Cameron" },
+      },
       collectorDetails: "收藏资料", collectorDetailsIntro: "记录随附配件、认证、品相，以及仅供内部核对的来源。",
       localizedContent: "访客页面文案", localizedContentIntro: "三种语言应分别自然撰写；GSS、Circle T、Timeless、TourType 等正式名称通常无需翻译。", localeEditorHint: "标题、说明、随附配件与搜索摘要",
       catalogueState: "供应状态、价格与公开设置", catalogueStateIntro: "供应状态描述藏品本身；公开设置决定访客能否在网站看到这条记录。",
-      slug: "公开页面网址", slugHelp: "页面网址的最后一段。请使用小写英文和连字符；非必要请勿更改。", brand: "品牌／制作者", model: "藏品名称／型号", modelFamily: "型号系列", modelFamilyHelp: "用于归类相近设计，例如 Timeless / TourType。", catalogCategory: "主要分类", category: "选填次分类", releaseYear: "型号年份",
+      slug: "公开页面网址", slugHelp: "页面网址的最后一段。请使用小写英文和连字符；非必要请勿更改。", brand: "品牌／制作者", model: "藏品名称／型号", modelFamily: "系列／产品家族", modelFamilyHelp: "用于归类相近设计，例如 Timeless、Pathfinder、Gentleman Jackpot 或 Gallery 球标。", catalogCategory: "主要分类", category: "选填次分类", releaseYear: "发售年份",
       traditionalChinese: "繁体中文", simplifiedChinese: "简体中文", english: "英文",
       title: "藏品标题", subtitle: "一行规格摘要", overview: "藏品介绍", collectorNotes: "收藏笔记", conditionNotes: "品相说明", provenanceText: "向访客显示的来源记录", includedItems: "随附配件", seoTitle: "搜索结果标题", seoDescription: "搜索结果摘要",
       status: "供应状态", headMaterial: "杆头材质", headStyle: "杆头造型", finish: "表面处理", neckType: "杆颈形式", alignmentAid: "瞄准标记", lengthInches: "杆长（英寸）", loftDegrees: "倾角（度）", lieDegrees: "Lie 角（度）", headWeightGrams: "杆头重量（克）", shaft: "杆身", grip: "握把", headcover: "杆头套", paintFill: "填漆", coaStatus: "原厂认证书（COA）", coaHelp: "请注明是否随附认证书及编号，例如：随附 — A-074011。", serialNumber: "序号／登记编号", conditionScore: "品相评分（0–10）", location: "目前所在地", provenanceSummary: "内部来源／核对备注",

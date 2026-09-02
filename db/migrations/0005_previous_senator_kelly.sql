@@ -1,0 +1,1 @@
+ALTER TABLE "putters" ADD COLUMN "category_specifications" jsonb DEFAULT '{}'::jsonb NOT NULL;

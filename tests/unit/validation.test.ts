@@ -4,6 +4,7 @@ import { inquirySchema } from "@/lib/validation/inquiry";
 import { customerInterestSchema, customerProfileSchema } from "@/lib/validation/customer";
 import { catalogCategoryAdminSchema, cloudinaryCleanupSchema, putterAdminSchema, siteSettingsAdminSchema } from "@/lib/validation/admin";
 import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/constants";
+import { buildCategorySpecifications } from "@/lib/category-specifications";
 
 describe("slug validation", () => {
   it("accepts normalized slugs", () => expect(slugSchema.safeParse("atelier-01-gss").success).toBe(true));
@@ -70,6 +71,20 @@ describe("admin putter validation", () => {
   it("requires an amount only when amount display is selected", () => {
     expect(putterAdminSchema.safeParse({ ...valid, priceAmount: "" }).success).toBe(false);
     expect(putterAdminSchema.safeParse({ ...valid, priceMode: "hidden", priceAmount: "" }).success).toBe(true);
+  });
+  it("validates category-specific dates and numeric measurements", () => {
+    expect(putterAdminSchema.safeParse({ ...valid, releaseDate: "2026-06-15", pocketCount: "7", weightPounds: "5.8" }).success).toBe(true);
+    expect(putterAdminSchema.safeParse({ ...valid, releaseDate: "June 15" }).success).toBe(false);
+  });
+});
+
+describe("category-specific specification storage", () => {
+  it("keeps only fields belonging to the selected category", () => {
+    expect(buildCategorySpecifications("headcovers", { headcoverFit: "Blade", colorway: "Red", bagType: "Stand bag", headStyle: "Blade" })).toEqual({ headcoverFit: "Blade", colorway: "Red" });
+    expect(buildCategorySpecifications("golf-bags", { bagType: "Pathfinder stand bag", pocketCount: 7, accessoryType: "Ball marker" })).toEqual({ bagType: "Pathfinder stand bag", pocketCount: 7 });
+  });
+  it("gives additional categories a useful generic specification set", () => {
+    expect(buildCategorySpecifications("apparel", { material: "Cotton", dimensions: "Large", bagType: "Stand bag" })).toEqual({ material: "Cotton", dimensions: "Large" });
   });
 });
 

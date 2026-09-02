@@ -52,6 +52,7 @@ async function hydratePublished(): Promise<Putter[]> {
       releaseYear: row.releaseYear ?? undefined, category: row.category ?? undefined,
       catalogCategoryId: row.catalogCategoryId ?? defaultCategory.id,
       catalogCategory: categories.find((category) => category.id === row.catalogCategoryId) ?? defaultCategory,
+      categorySpecifications: row.categorySpecifications ?? {},
       status: normalizeStatus(row.status),
       headStyle: row.headStyle ?? undefined, headMaterial: row.headMaterial ?? undefined, finish: row.finish ?? undefined,
       neckType: row.neckType ?? undefined, alignmentAid: row.alignmentAid ?? undefined, lengthInches: row.lengthInches ?? undefined,
@@ -78,12 +79,12 @@ export function filterPublishedPutters(items: Putter[], filters?: Partial<Collec
   if (filters?.brand) result = result.filter((putter) => putter.brand === filters.brand);
   if (filters?.modelFamily) result = result.filter((putter) => putter.modelFamily === filters.modelFamily);
   if (filters?.headStyle) result = result.filter((putter) => putter.headStyle === filters.headStyle);
-  if (filters?.material) result = result.filter((putter) => putter.headMaterial === filters.material);
+  if (filters?.material) result = result.filter((putter) => (putter.headMaterial ?? putter.categorySpecifications?.material) === filters.material);
   if (filters?.year) result = result.filter((putter) => putter.releaseYear === filters.year);
   if (filters?.category) result = result.filter((putter) => putter.catalogCategory?.slug === filters.category);
   if (filters?.search) {
     const term = filters.search.toLowerCase();
-    result = result.filter((putter) => [putter.brand, putter.model, putter.modelFamily, putter.headMaterial, putter.neckType, ...putter.tags].some((value) => value?.toLowerCase().includes(term)));
+    result = result.filter((putter) => [putter.brand, putter.model, putter.modelFamily, putter.headMaterial, putter.neckType, ...Object.values(putter.categorySpecifications ?? {}).map(String), ...putter.tags].some((value) => value?.toLowerCase().includes(term)));
   }
   switch (filters?.sort) {
     case "newest": result.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")); break;
@@ -106,11 +107,18 @@ export async function getPutterBySlug(slug: string) {
 
 export async function getRelatedPutters(putter: Putter, limit = 4) {
   const all = await getPublishedPutters();
-  return all.filter((candidate) => candidate.id !== putter.id).map((candidate) => ({ candidate, score: Number(candidate.catalogCategory?.id === putter.catalogCategory?.id) * 8 + Number(candidate.modelFamily === putter.modelFamily) * 4 + Number(candidate.headMaterial === putter.headMaterial) * 2 + Number(candidate.headStyle === putter.headStyle) })).sort((a, b) => b.score - a.score).slice(0, limit).map(({ candidate }) => candidate);
+  return all.filter((candidate) => candidate.id !== putter.id).map((candidate) => ({
+    candidate,
+    score: Number(candidate.catalogCategory?.id === putter.catalogCategory?.id) * 8
+      + Number(Boolean(putter.modelFamily) && candidate.modelFamily === putter.modelFamily) * 4
+      + Number(Boolean(putter.headMaterial) && candidate.headMaterial === putter.headMaterial) * 2
+      + Number(Boolean(putter.headStyle) && candidate.headStyle === putter.headStyle)
+      + Number(Boolean(putter.categorySpecifications?.material) && candidate.categorySpecifications?.material === putter.categorySpecifications?.material) * 2,
+  })).sort((a, b) => b.score - a.score).slice(0, limit).map(({ candidate }) => candidate);
 }
 
 export async function getCollectionFacets(items?: Putter[]) {
   const all = items ?? await getPublishedPutters();
   const unique = (values: Array<string | undefined>) => [...new Set(values.filter(Boolean) as string[])].sort();
-  return { brands: unique(all.map((item) => item.brand)), materials: unique(all.map((item) => item.headMaterial)), headStyles: unique(all.map((item) => item.headStyle)), categories: unique(all.map((item) => item.catalogCategory?.slug)), years: [...new Set(all.map((item) => item.releaseYear).filter(Boolean) as number[])].sort((a, b) => b - a) };
+  return { brands: unique(all.map((item) => item.brand)), materials: unique(all.map((item) => item.headMaterial ?? item.categorySpecifications?.material)), headStyles: unique(all.map((item) => item.headStyle)), categories: unique(all.map((item) => item.catalogCategory?.slug)), years: [...new Set(all.map((item) => item.releaseYear).filter(Boolean) as number[])].sort((a, b) => b - a) };
 }

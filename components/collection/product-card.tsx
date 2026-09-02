@@ -9,7 +9,11 @@ export function ProductCard({ putter, locale, statusLabel, priceOnRequest, prior
   const primary = putter.images.find((image) => image.isPrimary) ?? putter.images[0];
   const alternate = putter.images[1];
   const price = formatPrice(putter.priceMode, putter.priceCents, putter.priceCurrency, locale);
-  const metadata = [putter.headMaterial, putter.releaseYear].filter(Boolean).join(" · ");
+  const categoryDetail = putter.catalogCategory?.slug === "golf-bags" ? putter.categorySpecifications?.bagType
+    : putter.catalogCategory?.slug === "headcovers" ? putter.categorySpecifications?.headcoverFit
+      : putter.catalogCategory?.slug === "accessories" ? putter.categorySpecifications?.accessoryType
+        : undefined;
+  const metadata = [categoryDetail ?? putter.headMaterial ?? putter.categorySpecifications?.material, putter.releaseYear].filter(Boolean).join(" · ");
   return (
     <article className={`product-card${compact ? " product-card-compact" : ""}`}>
       <Link className="product-image-wrap" href={`/${locale}/collection/${putter.slug}`} aria-label={translation.title}>

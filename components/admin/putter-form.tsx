@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { savePutterAction, type AdminActionState } from "@/app/admin/actions";
 import { AdminImageManager } from "@/components/admin/image-manager";
 import type { AdminPutterEditorMessages } from "@/lib/admin-i18n";
 import type { AdminImageInput } from "@/lib/images/paths";
-import type { CatalogCategory, Locale, PutterStatus, PutterTranslation } from "@/lib/types";
+import type { CatalogCategory, CategorySpecifications, Locale, PutterStatus, PutterTranslation } from "@/lib/types";
 
 const initialState: AdminActionState = { status: "idle", message: "" };
 const statuses: PutterStatus[] = ["available", "reserved", "sold", "display_only", "private"];
@@ -20,6 +20,7 @@ interface PutterFormData {
   modelFamily?: string | null;
   category?: string | null;
   catalogCategoryId?: string | null;
+  categorySpecifications?: CategorySpecifications | null;
   releaseYear?: number | null;
   status?: string;
   headMaterial?: string | null;
@@ -61,7 +62,7 @@ interface PutterFormProps {
 interface InputOptions {
   required?: boolean;
   help?: string;
-  type?: "text" | "number";
+  type?: "text" | "number" | "date";
   inputMode?: "decimal" | "numeric";
   min?: number;
   max?: number;
@@ -82,6 +83,7 @@ function amountFromCents(cents?: number | null) {
 
 export function PutterForm({ data = {}, labels, locale, statusLabels, categories, defaultCategoryId }: PutterFormProps) {
   const [state, action] = useActionState(savePutterAction, initialState);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(data.catalogCategoryId ?? defaultCategoryId);
   const input = (name: string, label: string, defaultValue?: string | number | null, options: InputOptions = {}) => <label className={options.className}>
     <span>{label}</span>
     <input
@@ -105,6 +107,8 @@ export function PutterForm({ data = {}, labels, locale, statusLabels, categories
     {state.errors?.[name] ? <small className="admin-field-error">{state.errors[name]}</small> : null}
   </label>;
   const defaultTitle = `${data.brand ?? ""} ${data.model ?? ""}`.trim();
+  const selectedCategorySlug = categories.find((category) => category.id === selectedCategoryId)?.slug ?? "additional";
+  const categorySpecs = data.categorySpecifications ?? {};
   const localeEditors = [
     { key: "zh-hant" as const, suffix: "ZhHant", label: labels.traditionalChinese },
     { key: "zh-hans" as const, suffix: "ZhHans", label: labels.simplifiedChinese },
@@ -120,7 +124,7 @@ export function PutterForm({ data = {}, labels, locale, statusLabels, categories
       <legend>{labels.identity}</legend>
       <p className="admin-fieldset-intro">{labels.identityIntro}</p>
       <div className="admin-form-grid">
-        <label><span>{labels.catalogCategory}</span><select name="catalogCategoryId" defaultValue={data.catalogCategoryId ?? defaultCategoryId} required>{categories.map((category) => <option key={category.id} value={category.id}>{category.name[locale]}{category.isDefault ? " · ★" : ""}</option>)}</select></label>
+        <label><span>{labels.catalogCategory}</span><select name="catalogCategoryId" value={selectedCategoryId} onChange={(event) => setSelectedCategoryId(event.target.value)} required>{categories.map((category) => <option key={category.id} value={category.id}>{category.name[locale]}{category.isDefault ? " · ★" : ""}</option>)}</select></label>
         {input("brand", labels.brand, data.brand, { required: true })}
         {input("model", labels.model, data.model, { required: true, className: "admin-span-2" })}
         {input("modelFamily", labels.modelFamily, data.modelFamily, { help: labels.modelFamilyHelp })}
@@ -130,7 +134,7 @@ export function PutterForm({ data = {}, labels, locale, statusLabels, categories
       </div>
     </fieldset>
 
-    <fieldset>
+    {selectedCategorySlug === "putters" ? <fieldset>
       <legend>{labels.playingSpecifications}</legend>
       <p className="admin-fieldset-intro">{labels.playingSpecificationsIntro}</p>
       <div className="admin-form-grid">
@@ -145,15 +149,49 @@ export function PutterForm({ data = {}, labels, locale, statusLabels, categories
         {input("lieDegrees", labels.lieDegrees, data.lieDegrees, { type: "number", inputMode: "decimal", min: 40, max: 90, step: 0.25 })}
         {input("shaft", labels.shaft, data.shaft)}
         {input("grip", labels.grip, data.grip, { className: "admin-span-2" })}
+        {input("headcover", labels.headcover, data.headcover, { className: "admin-span-2" })}
+        {input("paintFill", labels.paintFill, data.paintFill)}
       </div>
-    </fieldset>
+    </fieldset> : <fieldset className="admin-category-specifications" data-category={selectedCategorySlug}>
+      <legend>{selectedCategorySlug === "headcovers" ? labels.categoryFields.sections.headcovers.title : selectedCategorySlug === "golf-bags" ? labels.categoryFields.sections.golfBags.title : selectedCategorySlug === "accessories" ? labels.categoryFields.sections.accessories.title : labels.categoryFields.sections.additional.title}</legend>
+      <p className="admin-fieldset-intro">{selectedCategorySlug === "headcovers" ? labels.categoryFields.sections.headcovers.intro : selectedCategorySlug === "golf-bags" ? labels.categoryFields.sections.golfBags.intro : selectedCategorySlug === "accessories" ? labels.categoryFields.sections.accessories.intro : labels.categoryFields.sections.additional.intro}</p>
+      <div className="admin-form-grid">
+        {input("productCode", labels.categoryFields.productCode, categorySpecs.productCode)}
+        {input("releaseDate", labels.categoryFields.releaseDate, categorySpecs.releaseDate, { type: "date" })}
+        {input("releaseEvent", labels.categoryFields.releaseEvent, categorySpecs.releaseEvent, { placeholder: labels.categoryFields.examples.releaseEvent })}
+        {input("edition", labels.categoryFields.edition, categorySpecs.edition, { placeholder: labels.categoryFields.examples.edition })}
+        {input("material", labels.categoryFields.material, categorySpecs.material, { placeholder: labels.categoryFields.examples.material })}
+        {input("colorway", labels.categoryFields.colorway, categorySpecs.colorway, { placeholder: labels.categoryFields.examples.colorway })}
+        {selectedCategorySlug === "headcovers" ? <>
+          {input("headcoverFit", labels.categoryFields.headcoverFit, categorySpecs.headcoverFit, { placeholder: labels.categoryFields.examples.headcoverFit })}
+          {input("handedness", labels.categoryFields.handedness, categorySpecs.handedness)}
+          {input("closureType", labels.categoryFields.closureType, categorySpecs.closureType)}
+        </> : null}
+        {selectedCategorySlug === "golf-bags" ? <>
+          {input("bagType", labels.categoryFields.bagType, categorySpecs.bagType, { placeholder: labels.categoryFields.examples.bagType })}
+          {input("dividerTop", labels.categoryFields.dividerTop, categorySpecs.dividerTop)}
+          {input("strapSystem", labels.categoryFields.strapSystem, categorySpecs.strapSystem)}
+          {input("pocketCount", labels.categoryFields.pocketCount, categorySpecs.pocketCount, { type: "number", inputMode: "numeric", min: 0, max: 50, step: 1 })}
+          {input("weightPounds", labels.categoryFields.weightPounds, categorySpecs.weightPounds, { type: "number", inputMode: "decimal", min: 0, max: 50, step: 0.1 })}
+          {textarea("featureSummary", labels.categoryFields.featureSummary, categorySpecs.featureSummary, "admin-span-3", 4)}
+        </> : null}
+        {selectedCategorySlug === "accessories" ? <>
+          {input("accessoryType", labels.categoryFields.accessoryType, categorySpecs.accessoryType, { placeholder: labels.categoryFields.examples.accessoryType })}
+          {input("dimensions", labels.categoryFields.dimensions, categorySpecs.dimensions)}
+          {input("weightGrams", labels.categoryFields.weightGrams, categorySpecs.weightGrams, { type: "number", inputMode: "decimal", min: 0, max: 10000, step: 0.1 })}
+          {input("galleryOrigin", labels.categoryFields.galleryOrigin, categorySpecs.galleryOrigin, { placeholder: labels.categoryFields.examples.galleryOrigin, className: "admin-span-2" })}
+        </> : null}
+        {!["headcovers", "golf-bags", "accessories"].includes(selectedCategorySlug) ? <>
+          {input("dimensions", labels.categoryFields.dimensions, categorySpecs.dimensions)}
+          {input("weightGrams", labels.categoryFields.weightGrams, categorySpecs.weightGrams, { type: "number", inputMode: "decimal", min: 0, max: 10000, step: 0.1 })}
+        </> : null}
+      </div>
+    </fieldset>}
 
     <fieldset>
       <legend>{labels.collectorDetails}</legend>
       <p className="admin-fieldset-intro">{labels.collectorDetailsIntro}</p>
       <div className="admin-form-grid">
-        {input("headcover", labels.headcover, data.headcover, { className: "admin-span-2" })}
-        {input("paintFill", labels.paintFill, data.paintFill)}
         {input("coaStatus", labels.coaStatus, data.coaStatus, { help: labels.coaHelp })}
         {input("serialNumber", labels.serialNumber, data.serialNumber)}
         {input("conditionScore", labels.conditionScore, data.conditionScore, { type: "number", inputMode: "decimal", min: 0, max: 10, step: 0.1 })}
