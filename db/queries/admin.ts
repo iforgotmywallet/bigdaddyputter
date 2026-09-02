@@ -1,11 +1,16 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/client";
 import { inquiries, putterImages, putters, putterTranslations, testimonials } from "@/db/schema";
 import { samplePutters } from "@/lib/data/sample-putters";
+import type { Locale } from "@/lib/types";
 
-export async function getAdminPutters() {
-  if (!hasDatabase()) return samplePutters.map((putter) => ({ id: putter.id, slug: putter.slug, brand: putter.brand, model: putter.model, catalogCategoryId: putter.catalogCategoryId ?? null, status: putter.status, isFeatured: putter.isFeatured, isPublished: putter.isPublished, displayOrder: putter.displayOrder, updatedAt: new Date(putter.updatedAt) }));
-  return getDb().select({ id: putters.id, slug: putters.slug, brand: putters.brand, model: putters.model, catalogCategoryId: putters.catalogCategoryId, status: putters.status, isFeatured: putters.isFeatured, isPublished: putters.isPublished, displayOrder: putters.displayOrder, updatedAt: putters.updatedAt }).from(putters).orderBy(desc(putters.updatedAt));
+export async function getAdminPutters(locale: Locale) {
+  if (!hasDatabase()) return samplePutters.map((putter) => ({ id: putter.id, slug: putter.slug, brand: putter.brand, model: putter.model, title: putter.translations[locale].title, catalogCategoryId: putter.catalogCategoryId ?? null, status: putter.status, isFeatured: putter.isFeatured, isPublished: putter.isPublished, displayOrder: putter.displayOrder, updatedAt: new Date(putter.updatedAt) }));
+  const rows = await getDb().select({ id: putters.id, slug: putters.slug, brand: putters.brand, model: putters.model, title: putterTranslations.title, catalogCategoryId: putters.catalogCategoryId, status: putters.status, isFeatured: putters.isFeatured, isPublished: putters.isPublished, displayOrder: putters.displayOrder, updatedAt: putters.updatedAt })
+    .from(putters)
+    .leftJoin(putterTranslations, and(eq(putterTranslations.putterId, putters.id), eq(putterTranslations.locale, locale)))
+    .orderBy(desc(putters.updatedAt));
+  return rows.map((row) => ({ ...row, title: row.title ?? row.model }));
 }
 
 export async function getAdminPutter(id: string) {
