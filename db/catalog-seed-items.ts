@@ -303,7 +303,7 @@ export const catalogSeedItems: CatalogSeedItem[] = [
       colorway: "Black / Pink",
       galleryOrigin: "Scotty Cameron Gallery, Encinitas",
     },
-    status: "sold",
+    status: "available",
     conditionScore: 10,
     priceMode: "amount",
     priceCents: 25_000,
@@ -349,6 +349,21 @@ export const catalogSeedItems: CatalogSeedItem[] = [
         seoDescription: "2026 Scotty Cameron Gallery Circle T SSS 黑粉配色高尔夫球标，参考成交价 250 美元。",
       },
     },
-    images: [],
+    images: [
+      {
+        src: "https://res.cloudinary.com/vwr9uf68/image/upload/v1788384289/bigdaddyputter/products/f02ce49d-ade4-4e1e-8f64-bd692a73f3f1.jpg",
+        storageKey: "bigdaddyputter/products/f02ce49d-ade4-4e1e-8f64-bd692a73f3f1",
+        width: 1200,
+        height: 1600,
+        alt: { en: "2026 Gallery Circle T SSS Ball Marker — Black / Pink", "zh-hant": "2026 Gallery Circle T SSS 高爾夫球標｜黑／粉紅", "zh-hans": "2026 Gallery Circle T SSS 高尔夫球标｜黑／粉红" },
+      },
+      {
+        src: "https://res.cloudinary.com/vwr9uf68/image/upload/v1788384315/bigdaddyputter/products/0b95ab0f-e806-47fa-9f4b-1b8ceb9fe28e.jpg",
+        storageKey: "bigdaddyputter/products/0b95ab0f-e806-47fa-9f4b-1b8ceb9fe28e",
+        width: 1200,
+        height: 1600,
+        alt: { en: "2026 Gallery Circle T SSS Ball Marker — Black / Pink", "zh-hant": "2026 Gallery Circle T SSS 高爾夫球標｜黑／粉紅", "zh-hans": "2026 Gallery Circle T SSS 高尔夫球标｜黑／粉红" },
+      },
+    ],
   },
 ];

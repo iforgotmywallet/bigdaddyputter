@@ -47,7 +47,16 @@ export async function logoutAdminFromPublicAction(formData: FormData) {
 }
 
 function toObject(formData: FormData) { return { ...Object.fromEntries(formData.entries()), isFeatured: formData.get("isFeatured") === "on", isPublished: formData.get("isPublished") === "on" }; }
-function refreshCollectionItem(slug: string) { revalidatePath("/[locale]", "page"); revalidatePath("/[locale]/collection", "page"); revalidatePath("/[locale]/collection/category/[categorySlug]", "page"); revalidatePath(`/zh-hant/collection/${slug}`); revalidatePath(`/zh-hans/collection/${slug}`); revalidatePath(`/en/collection/${slug}`); }
+function refreshCollectionItem(slug: string) {
+  // The catalogue appears across the homepage, archive, availability, new-arrivals,
+  // category, and detail routes. Invalidating the locale layout covers the whole
+  // public subtree instead of allowing one statically generated tab to stay stale.
+  revalidatePath("/[locale]", "layout");
+  revalidatePath("/sitemap.xml");
+  revalidatePath(`/zh-hant/collection/${slug}`);
+  revalidatePath(`/zh-hans/collection/${slug}`);
+  revalidatePath(`/en/collection/${slug}`);
+}
 function emptyToNull<T>(value: T | "") { return value === "" ? null : value; }
 
 export async function savePutterAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
@@ -242,9 +251,7 @@ export async function saveCatalogCategoryAction(formData: FormData) {
     console.error("Could not save catalogue category", error);
     redirect("/admin/categories?error=1");
   }
-  revalidatePath("/[locale]", "page");
-  revalidatePath("/[locale]/collection", "page");
-  revalidatePath("/[locale]/collection/category/[categorySlug]", "page");
+  revalidatePath("/[locale]", "layout");
   revalidatePath("/admin/categories");
   redirect("/admin/categories?saved=1");
 }
